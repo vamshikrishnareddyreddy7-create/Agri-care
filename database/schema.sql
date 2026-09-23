@@ -18,7 +18,9 @@ CREATE TABLE IF NOT EXISTS users (
     user_id        INT AUTO_INCREMENT PRIMARY KEY,
     name           VARCHAR(120)  NOT NULL,
     email          VARCHAR(190)  NOT NULL UNIQUE,
-    password_hash  VARCHAR(255)  NOT NULL,
+    password_hash  VARCHAR(255)  DEFAULT NULL,   -- NULL for Google-only accounts
+    auth_provider  VARCHAR(20)   NOT NULL DEFAULT 'local',  -- 'local' | 'google'
+    google_sub     VARCHAR(64)   DEFAULT NULL,  -- stable Google account id
     phone          VARCHAR(30)   DEFAULT NULL,
     role           VARCHAR(20)   NOT NULL DEFAULT 'Farmer',
     email_verified TINYINT(1)    DEFAULT 0,
@@ -35,6 +37,13 @@ CREATE TABLE IF NOT EXISTS users (
 -- ALTER TABLE users
 --     ADD COLUMN role VARCHAR(20) NOT NULL DEFAULT 'Farmer',
 --     ADD INDEX idx_users_role (role);
+
+-- Upgrade path for deployments created before the Google OAuth upgrade:
+-- ALTER TABLE users
+--     MODIFY COLUMN password_hash VARCHAR(255) DEFAULT NULL,
+--     ADD COLUMN auth_provider VARCHAR(20) NOT NULL DEFAULT 'local',
+--     ADD COLUMN google_sub VARCHAR(64) DEFAULT NULL,
+--     ADD INDEX idx_users_google_sub (google_sub);
 
 -- Upgrade path for deployments created before the verification upgrade:
 -- ALTER TABLE users

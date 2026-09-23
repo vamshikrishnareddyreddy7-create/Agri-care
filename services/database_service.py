@@ -189,6 +189,43 @@ class Database:
         rows = self._query("SELECT * FROM users WHERE email = %s", (email,))
         return rows[0] if rows else None
 
+    def get_user_by_google_sub(self, google_sub):
+        """Find a user by their stable Google account id (sub claim)."""
+        if not google_sub:
+            return None
+        if self.mode == "demo":
+            return next((u for u in self._store["users"]
+                         if u.get("google_sub") == google_sub), None)
+        rows = self._query("SELECT * FROM users WHERE google_sub = %s", (google_sub,))
+        return rows[0] if rows else None
+
+    def link_google_account(self, user_id, google_sub):
+        """Attach a Google identity to an existing (password) account."""
+        if self.mode == "demo":
+            u = self.get_user(user_id)
+            if not u:
+                return False
+            u["google_sub"] = google_sub
+            u["email_verified"] = True
+            return True
+        self._execute(
+            "UPDATE users SET google_sub=%s, email_verified=1 "
+            "WHERE user_id=%s", (google_sub, user_id))
+        return True
+
+    def set_google_password(self, user_id, password_hash):
+        """Give a Google-only account a password so it can also log in with
+        email/phone (called from the profile/password flow, never required)."""
+        if self.mode == "demo":
+            u = self.get_user(user_id)
+            if not u:
+                return False
+            u["password_hash"] = password_hash
+            return True
+        self._execute("UPDATE users SET password_hash=%s WHERE user_id=%s",
+                      (password_hash, user_id))
+        return True
+
     def get_user_by_phone(self, phone):
         """Find a user by their (normalized) phone number — phone login."""
         digits = re.sub(r"[^0-9]", "", str(phone or ""))
@@ -212,7 +249,8 @@ class Database:
         rows = self._query("SELECT * FROM users WHERE user_id = %s", (user_id,))
         return rows[0] if rows else None
 
-    def create_user(self, name, email, password_hash, phone="", role="Farmer"):
+    def create_user(self, name, email, password_hash=None, phone="", role="Farmer",
+                    auth_provider="local", google_sub=None):
         if self.mode == "demo":
             if email and self.get_user_by_email(email):
                 raise ValueError("email_exists")
@@ -223,14 +261,16 @@ class Database:
             self._store["users"].append({
                 "user_id": uid, "name": name, "email": email,
                 "password_hash": password_hash, "phone": phone, "role": role,
+                "auth_provider": auth_provider, "google_sub": google_sub,
                 "email_verified": False, "phone_verified": False,
                 "created_at": datetime.now(), "updated_at": datetime.now()})
             return uid
         try:
             return self._execute(
-                "INSERT INTO users (name, email, password_hash, phone, role) "
-                "VALUES (%s,%s,%s,%s,%s)",
-                (name, email, password_hash, phone or None, role))
+                "INSERT INTO users (name, email, password_hash, phone, role, "
+                "auth_provider, google_sub) VALUES (%s,%s,%s,%s,%s,%s,%s)",
+                (name, email, password_hash, phone or None, role,
+                 auth_provider, google_sub))
         except Exception as exc:   # uniqueness violations surface as 1062/1069
             msg = str(exc).lower()
             if "phone" in msg and ("1062" in msg or "unique" in msg or "duplicate" in msg):

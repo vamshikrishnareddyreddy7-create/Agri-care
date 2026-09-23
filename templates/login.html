@@ -45,6 +45,16 @@
     </div>
     <button class="btn btn-primary btn-block" type="submit" id="loginBtn">Login</button>
   </form>
+  {% if google_error %}
+  <div class="google-error" role="alert">{{ google_error }}</div>
+  {% endif %}
+  {% if google_enabled %}
+  <div class="oauth-divider"><span>or</span></div>
+  <a class="btn-google" href="{{ url_for('api_auth_google_start', next=request.args.get('next')) }}">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="#4285F4" d="M23.5 12.3c0-.9-.1-1.5-.3-2.2H12v4.1h6.5c-.1 1.1-.8 2.7-2.4 3.8l-.02.15 3.5 2.7.24.03c2.2-2.1 3.5-5.1 3.5-8.6z"/><path fill="#34A853" d="M12 24c3.2 0 5.9-1.1 7.9-2.9l-3.8-2.9c-1 .7-2.4 1.2-4.1 1.2-3.1 0-5.8-2.1-6.8-5l-.14.01-3.6 2.8-.05.13C3.4 21.3 7.4 24 12 24z"/><path fill="#FBBC05" d="M5.2 14.4c-.25-.75-.4-1.55-.4-2.4s.15-1.65.42-2.4l-.01-.16-3.65-2.8-.12.06C.5 8.2 0 10 0 12s.5 3.8 1.44 5.3l3.76-2.9z"/><path fill="#EA4335" d="M12 4.6c2.2 0 3.7.95 4.6 1.75l3.35-3.27C17.9 1.14 15.2 0 12 0 7.4 0 3.4 2.6 1.44 6.7l3.76 2.9c1-2.9 3.7-5 6.8-5z"/></svg>
+    Continue with Google
+  </a>
+  {% endif %}
   <p class="auth-foot">
     Don't have an account? <a href="{{ url_for('register') }}">Create Account</a>
   </p>

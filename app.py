@@ -27,6 +27,7 @@ from config import Config
 from services.database_service import db
 from services import ml_service, chatbot_service
 from services import notification_service
+from services import google_auth
 from services.email_service import email_service
 from services.sms_service import sms_service
 
@@ -325,7 +326,9 @@ def login():
         if status == 200:
             return redirect(result["redirect"])
         return render_template("login.html", error=result.get("error")), status
-    return render_template("login.html")
+    return render_template("login.html",
+                           google_enabled=google_auth.configured(),
+                           google_error=request.args.get("google_error"))
 
 
 @app.route("/register", methods=["GET", "POST"])
@@ -805,6 +808,84 @@ def api_reset_password():
 def api_logout():
     session.clear()
     return jsonify({"ok": True})
+
+
+# ---------------------------------------------------------------------- #
+#  Google OAuth ("Continue with Google")
+# ---------------------------------------------------------------------- #
+_GOOGLE_ERRORS = {
+    "state": "Sign-in could not be verified — please try again.",
+    "expired": "Sign-in took too long — please try again.",
+    "exchange": "Could not complete Google sign-in — please try again.",
+    "verify": "Google sign-in failed verification — please try again.",
+    "email_unverified": "Your Google email is not verified — use a verified Google account.",
+    "domain_not_allowed": "This Google account's domain is not allowed to sign in.",
+    "disabled": "Google sign-in is not configured on this server.",
+}
+
+
+def _google_error_url(code):
+    from urllib.parse import quote
+    return f"/login?google_error={quote(_GOOGLE_ERRORS.get(code, _GOOGLE_ERRORS['exchange']))}"
+
+
+@app.route("/api/auth/google", methods=["GET"])
+def api_auth_google_start():
+    """Kick off the OAuth flow — 302 to Google's consent screen."""
+    if not google_auth.configured():
+        return redirect(_google_error_url("disabled"))
+    next_url = request.args.get("next") or url_for("dashboard")
+    if not next_url.startswith("/"):
+        next_url = url_for("dashboard")
+    session["google_oauth_next"] = next_url
+    return redirect(google_auth.build_auth_url(_base_url(), session))
+
+
+@app.route("/auth/google/callback", methods=["GET"])
+def google_oauth_callback():
+    """Google redirects here with ?code=...&state=...
+
+    Links the Google identity to an existing AgriCare account with the same
+    verified email, or creates a new account (role Farmer, no password — the
+    farmer can add one later; no Google password is ever seen or stored).
+    """
+    if not google_auth.configured():
+        return redirect(_google_error_url("disabled"))
+    if request.args.get("error"):
+        return redirect("/login?google_error=Google+sign-in+was+cancelled.")
+    code = request.args.get("code")
+    if not code:
+        return redirect(_google_error_url("exchange"))
+
+    claims, err = google_auth.exchange_code(code, request.args.get("state"),
+                                            _base_url(), session)
+    if err:
+        return redirect(_google_error_url(err))
+
+    user = db.get_user_by_google_sub(claims["sub"])
+    if not user:
+        existing = db.get_user_by_email(claims["email"])
+        if existing:
+            # Same verified email — link the Google identity to that account.
+            db.link_google_account(existing["user_id"], claims["sub"])
+            user = existing
+        else:
+            try:
+                uid = db.create_user(claims["name"], claims["email"],
+                                     password_hash=None, phone="", role="Farmer",
+                                     auth_provider="google", google_sub=claims["sub"])
+                db.update_profile(uid, {"email_verified": True})
+                user = db.get_user(uid)
+            except ValueError:
+                return redirect(_google_error_url("exchange"))
+
+    session.clear()                      # prevent session fixation
+    session["user_id"] = user["user_id"]
+    session.permanent = True
+    next_url = session.pop("google_oauth_next", None) or url_for("dashboard")
+    if not next_url.startswith("/"):
+        next_url = url_for("dashboard")
+    return redirect(next_url)
 
 
 @app.route("/logout", methods=["GET", "POST"])

@@ -584,6 +584,22 @@ table.data .actions-cell{display:flex;gap:5px;white-space:nowrap}
 .error-box{background:var(--danger-soft);border:1px solid #f3b8b8;border-radius:11px;padding:11px 14px;font-size:.8rem;color:var(--danger);margin-bottom:18px;line-height:1.5}
 .auth-foot{text-align:center;font-size:.84rem;color:var(--muted);margin-top:20px}
 .auth-foot a{color:var(--primary);font-weight:600}
+
+/* Google OAuth button */
+.oauth-divider{display:flex;align-items:center;gap:12px;margin:16px 0 14px;color:var(--muted);font-size:.76rem}
+.oauth-divider::before,.oauth-divider::after{content:"";flex:1;height:1px;background:var(--border-strong)}
+.btn-google{
+  display:flex;align-items:center;justify-content:center;gap:10px;width:100%;
+  padding:11px 14px;border:1px solid var(--border-strong);border-radius:11px;
+  background:var(--card);color:var(--text);font-size:.9rem;font-weight:600;
+  text-decoration:none;transition:all .15s;
+}
+.btn-google:hover{border-color:var(--primary-light);box-shadow:0 0 0 3px rgba(34,197,94,.13);transform:translateY(-1px)}
+.btn-google svg{width:18px;height:18px;flex:none}
+.google-error{
+  margin-top:14px;padding:10px 13px;border-radius:10px;font-size:.8rem;
+  background:rgba(220,38,38,.08);border:1px solid rgba(220,38,38,.35);color:var(--danger);
+}
 .auth-foot a:hover{text-decoration:underline}
 .back-link{display:inline-flex;align-items:center;gap:6px;color:var(--muted);font-size:.82rem;margin-bottom:16px}
 .back-link svg{width:15px;height:15px;stroke:currentColor;fill:none;stroke-width:2}

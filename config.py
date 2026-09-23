@@ -72,6 +72,19 @@ class Config:
     OTP_TTL_MINUTES = int(os.environ.get("OTP_TTL_MINUTES", "10"))
     OTP_MAX_ATTEMPTS = int(os.environ.get("OTP_MAX_ATTEMPTS", "5"))
 
+    # Google OAuth (optional) — "Continue with Google" sign-in. Secrets live
+    # ONLY in environment variables (.env locally, Render env in production);
+    # they are never committed and never sent to the frontend. When unset,
+    # the Google button hides itself automatically.
+    GOOGLE_CLIENT_ID = os.environ.get("GOOGLE_CLIENT_ID", "")
+    GOOGLE_CLIENT_SECRET = os.environ.get("GOOGLE_CLIENT_SECRET", "")
+    # Callback URL registered in Google Cloud Console. Defaults to
+    # <external base URL>/auth/google/callback.
+    GOOGLE_REDIRECT_URI = os.environ.get("GOOGLE_REDIRECT_URI", "")
+    # Comma-separated allow-list. When empty, ANY Google-verified email may
+    # sign up — tighten it for a production deployment if desired.
+    GOOGLE_ALLOWED_DOMAINS = os.environ.get("GOOGLE_ALLOWED_DOMAINS", "")
+
     # LLM (optional) — used by the chatbot when provided
     LLM_API_KEY = os.environ.get("LLM_API_KEY")
     LLM_API_URL = os.environ.get("LLM_API_URL", "https://api.openai.com/v1/chat/completions")
