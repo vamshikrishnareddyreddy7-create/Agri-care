@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% block title %}Admin — {{ APP_NAME }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Admin — Notifications &amp; Users</h1>
+    <p>Registered users, verification status and alert delivery health.</p>
+  </div>
+  <div class="actions">
+    <button class="btn btn-outline" id="refreshBtn">Refresh</button>
+  </div>
+</div>
+
+<div class="stat-grid" id="statGrid" style="margin-bottom:18px">
+  <div class="stat-card"><span class="stat-label">Total users</span><span class="stat-value" id="st-users">—</span></div>
+  <div class="stat-card"><span class="stat-label">Email verified</span><span class="stat-value" id="st-email">—</span></div>
+  <div class="stat-card"><span class="stat-label">Phone verified</span><span class="stat-value" id="st-phone">—</span></div>
+  <div class="stat-card"><span class="stat-label">Alerts sent</span><span class="stat-value" id="st-alerts">—</span></div>
+  <div class="stat-card"><span class="stat-label">Failed emails</span><span class="stat-value" id="st-emailfail">—</span></div>
+  <div class="stat-card"><span class="stat-label">Failed SMS</span><span class="stat-value" id="st-smsfail">—</span></div>
+</div>
+
+<div class="grid-2">
+  <div class="card">
+    <div class="card-head"><div><h3>Registered Users</h3></div></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>User</th><th>Email</th><th>Phone</th><th>Email verified</th><th>Phone verified</th><th>Role</th></tr></thead>
+        <tbody id="userRows"><tr><td colspan="6" class="text-muted">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head"><div><h3>Recent Alerts &amp; Delivery Status</h3></div></div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Alert</th><th>Severity</th><th>Equipment</th><th>Email</th><th>SMS</th><th>When</th></tr></thead>
+        <tbody id="alertRows"><tr><td colspan="6" class="text-muted">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/admin.js') }}"></script>
+{% endblock %}

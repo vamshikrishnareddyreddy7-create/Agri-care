@@ -1,0 +1,66 @@
+{% extends "base.html" %}
+{% block title %}Farm Equipment — {{ APP_NAME }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Farm Equipment</h1>
+    <p>Register, track and analyze every machine on your farm.</p>
+  </div>
+  <div class="actions">
+    <button class="btn btn-outline" id="viewToggle">
+      <svg id="viewIcon" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg>
+      <span id="viewLabel">Table view</span>
+    </button>
+    <button class="btn btn-primary" id="addEquipBtn">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+      Add Equipment
+    </button>
+  </div>
+</div>
+
+<!-- Toolbar -->
+<div class="card" style="padding:14px 18px;margin-bottom:18px">
+  <div class="form-grid" style="grid-template-columns:2fr 1fr 1fr 1fr">
+    <div class="field">
+      <label for="eqSearch">Search</label>
+      <input type="text" id="eqSearch" placeholder="Search by name, brand, model or ID…">
+    </div>
+    <div class="field">
+      <label for="typeFilter">Type</label>
+      <select id="typeFilter">
+        <option value="">All types</option>
+        <option>Tractor</option><option>Harvester</option><option>Tiller</option>
+        <option>Irrigation Pump</option><option>Seeder</option><option>Sprayer</option><option>Other</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="statusFilter">Status</label>
+      <select id="statusFilter">
+        <option value="">All statuses</option>
+        <option>Healthy</option><option>Maintenance Due</option>
+        <option>Warning</option><option>High Risk</option>
+      </select>
+    </div>
+    <div class="field">
+      <label for="riskFilter">Risk Level</label>
+      <select id="riskFilter">
+        <option value="">All risks</option>
+        <option>Low</option><option>Medium</option><option>High</option>
+      </select>
+    </div>
+  </div>
+</div>
+
+<!-- Card view -->
+<div id="cardView" class="equip-grid"></div>
+<!-- Table view -->
+<div id="tableView" class="table-wrap hidden" style="margin-top:4px"></div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.EQUIPMENT = {{ equipment | tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/equipment.js') }}"></script>
+{% endblock %}

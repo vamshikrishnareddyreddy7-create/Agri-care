@@ -1,0 +1,82 @@
+{% extends "base.html" %}
+{% block title %}Predictive Maintenance — {{ APP_NAME }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Predictive Maintenance</h1>
+    <p>Analyze operational data to identify abnormal conditions and estimate maintenance risk.</p>
+  </div>
+</div>
+
+<div class="card" id="modelBanner" style="padding:13px 18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:18px"></div>
+
+<div class="grid-2" style="grid-template-columns:1.1fr .9fr;align-items:start">
+  <!-- Analyze form -->
+  <div class="card">
+    <div class="card-head">
+      <div><h3>Analyze Equipment</h3><span class="sub">Enter the latest operational reading</span></div>
+    </div>
+    <form id="predictForm" novalidate>
+      <div class="field" id="pe-eq">
+        <label>Select Equipment <span class="req">*</span></label>
+        <select id="predEquip"><option>Loading…</option></select>
+        <span class="err-msg">Select an equipment.</span>
+        <p class="hint">Latest reading pre-fills automatically when available · operating hours: <b id="predHours">—</b></p>
+      </div>
+      <div class="form-grid" style="margin-top:12px">
+        <div class="field"><label>Engine Speed (RPM)</label><input name="engine_speed" type="number" step="any" placeholder="2100"></div>
+        <div class="field"><label>Engine Torque (Nm)</label><input name="engine_torque" type="number" step="any" placeholder="420"></div>
+        <div class="field"><label>Engine Load (%)</label><input name="engine_load" type="number" step="any" placeholder="78"></div>
+        <div class="field"><label>Coolant Temperature (°C)</label><input name="coolant_temperature" type="number" step="any" placeholder="88"></div>
+        <div class="field"><label>Oil Temperature (°C)</label><input name="oil_temperature" type="number" step="any" placeholder="96"></div>
+        <div class="field"><label>Oil Pressure (bar)</label><input name="oil_pressure" type="number" step="any" placeholder="2.9"></div>
+        <div class="field"><label>Fuel Rate (L/h)</label><input name="fuel_rate" type="number" step="any" placeholder="11.4"></div>
+        <div class="field"><label>Vehicle Speed (km/h)</label><input name="vehicle_speed" type="number" step="any" placeholder="7.5"></div>
+        <div class="field"><label>Battery Voltage (V)</label><input name="battery_voltage" type="number" step="any" placeholder="13.8"></div>
+        <div class="field"><label>Transmission (gear)</label><input name="transmission" type="number" step="any" placeholder="8"></div>
+      </div>
+      <button class="btn btn-primary" type="submit" id="analyzeBtn" style="margin-top:16px;width:100%">
+        <svg viewBox="0 0 24 24"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.9 4.9l2.8 2.8"/><path d="M16.3 16.3l2.8 2.8"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.9 19.1l2.8-2.8"/><path d="M16.3 7.7l2.8-2.8"/></svg>
+        Analyze Equipment
+      </button>
+    </form>
+  </div>
+
+  <!-- About / result column -->
+  <div>
+    <div class="card" style="margin-bottom:18px">
+      <div class="card-head">
+        <div><h3>About Predictive Maintenance</h3></div>
+      </div>
+      <p style="font-size:.9rem;color:var(--muted)">{{ model_info }}</p>
+      <div class="disclaimer" style="margin-top:12px">
+        <b style="color:var(--text)">How the risk is estimated:</b> a Normal condition corresponds to
+        Low maintenance risk, while an Anomalous condition maps to a higher risk level
+        (Medium or High). The final result is determined by the backend / ML model —
+        it is an early maintenance-risk indicator, not a mechanical failure diagnosis,
+        and it does not predict the exact date of a failure.
+      </div>
+    </div>
+    <div id="predResult" class="pred-result"></div>
+  </div>
+</div>
+
+<!-- Prediction history -->
+<div class="card" style="margin-top:18px">
+  <div class="card-head">
+    <div><h3>Prediction History</h3><span class="sub">Recent condition analyses</span></div>
+    <span class="text-sm" id="modelStatusText" style="color:var(--muted)"></span>
+  </div>
+  <div id="predHistory"></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.PRED_EQUIPMENT = {{ equipment | tojson }};
+window.PRED_HISTORY = {{ predictions | tojson }};
+window.PRED_MODEL_STATUS = {{ model_status | tojson }};
+window.PRED_EQUIPMENT_ID = {{ request.args.get('equipment_id', none) or 'null' }};
+</script>
+<script src="{{ url_for('static', filename='js/prediction.js') }}"></script>
+{% endblock %}

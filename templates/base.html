@@ -1,0 +1,257 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="csrf-token" content="{{ csrf_token }}">
+<title>{% block title %}{{ APP_NAME }}{% endblock %}</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23166534'/%3E%3Cpath d='M32 12c2 14-8 24-20 26 2 13 12 22 20 24 8-2 18-11 20-24-12-2-22-12-20-26z' fill='%2322c55e'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+<div class="app-shell">
+
+  <!-- ======= Sidebar ======= -->
+  <aside class="sidebar" id="sidebar">
+    <div class="brand">
+      <span class="brand-badge">
+        <svg viewBox="0 0 24 24"><path d="M12 3c.5 4.5-2.5 8-7 8.5C5.5 8 8.5 4 12 3z"/><path d="M12 3c-.5 4.5 2.5 8 7 8.5C18.5 8 15.5 4 12 3z"/><path d="M12 11.5V21"/></svg>
+      </span>
+      {{ APP_NAME }}
+    </div>
+    <nav class="side-nav">
+      <div class="nav-group">Main</div>
+      <a class="nav-item {{ 'active' if active == 'dashboard' }}" href="{{ url_for('dashboard') }}">
+        <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+        Dashboard
+      </a>
+      <a class="nav-item {{ 'active' if active == 'equipment' }}" href="{{ url_for('equipment_page') }}">
+        <svg viewBox="0 0 24 24"><path d="M20 7h-8l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/></svg>
+        Equipment
+      </a>
+      <a class="nav-item {{ 'active' if active == 'maintenance' }}" href="{{ url_for('maintenance_page') }}">
+        <svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-3 3-3-3z"/></svg>
+        Maintenance
+      </a>
+      <a class="nav-item {{ 'active' if active == 'operational' }}" href="{{ url_for('operational_data_page') }}">
+        <svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
+        Operational Data
+      </a>
+      <div class="nav-group">Intelligence</div>
+      <a class="nav-item {{ 'active' if active == 'prediction' }}" href="{{ url_for('prediction_page') }}">
+        <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4"/><path d="M15 2v4"/><path d="M9 18v4"/><path d="M15 18v4"/><path d="M2 9h4"/><path d="M18 9h4"/><path d="M2 15h4"/><path d="M18 15h4"/></svg>
+        Predictive Maintenance
+      </a>
+      <a class="nav-item {{ 'active' if active == 'chatbot' }}" href="{{ url_for('chatbot_page') }}">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        AI Assistant
+      </a>
+      <div class="nav-group">Insights</div>
+      <a class="nav-item {{ 'active' if active == 'reports' }}" href="{{ url_for('reports_page') }}">
+        <svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-6 4 3 5-7"/></svg>
+        Reports
+      </a>
+      <a class="nav-item {{ 'active' if active == 'notifications' }}" href="{{ url_for('notifications_page') }}">
+        <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        Notifications
+        {% if unread_count %}<span class="badge-count" data-notif-badge>{{ unread_count }}</span>{% endif %}
+      </a>
+      <div class="nav-group">Account</div>
+      <a class="nav-item {{ 'active' if active == 'profile' }}" href="{{ url_for('profile_page') }}">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+        Profile
+      </a>
+      <button class="nav-item" style="width:100%;background:none;border:none;text-align:left;cursor:pointer" data-logout>
+        <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+        Logout
+      </button>
+    </nav>
+    <div class="sidebar-foot">
+      {% if demo_banner %}
+      <div class="demo-chip"><b>Demo Mode</b><br>Using bundled sample data. Configure MySQL to use a real database.</div>
+      {% endif %}
+      <div style="font-size:.72rem;color:#7fa08c;padding:0 6px">
+        {{ current_user.name if current_user }} · {{ APP_NAME }}
+      </div>
+    </div>
+  </aside>
+
+  <div class="overlay" id="overlay"></div>
+
+  <!-- ======= Main column ======= -->
+  <div class="main">
+    <header class="topbar">
+      <button class="menu-btn" aria-label="Menu">
+        <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M3 12h18"/><path d="M3 18h18"/></svg>
+      </button>
+      <div class="search-wrap">
+        <svg class="search-ic" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+        <input id="headerSearch" type="search" placeholder="Search equipment…" autocomplete="off">
+        <div class="search-results" id="searchResults"></div>
+      </div>
+      <div class="spacer"></div>
+      <span class="tb-date">{{ today.strftime('%A, %d %B %Y') }}</span>
+
+      <!-- Notifications -->
+      <div class="dropdown">
+        <button class="tb-icon" aria-label="Notifications" id="notifBell">
+          <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+          <span class="badge-count" data-notif-badge style="{{ 'display:block' if unread_count else 'display:none' }}">{{ unread_count }}</span>
+        </button>
+        <div class="dropdown-menu notif-menu" id="notifMenu"></div>
+      </div>
+
+      <!-- Profile -->
+      <div class="dropdown">
+        <button class="user-chip" aria-label="Account">
+          <span class="user-avatar">{{ (current_user.name or 'U')[0]|upper }}</span>
+          <span class="u-name">{{ current_user.name }}</span>
+          <svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>
+        </button>
+        <div class="dropdown-menu">
+          <a href="{{ url_for('profile_page') }}">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 4-6 8-6s8 2 8 6"/></svg>
+            My Profile
+          </a>
+          <a href="{{ url_for('notifications_page') }}">
+            <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+            Notifications
+          </a>
+          <div class="sep"></div>
+          <button class="danger" data-logout>
+            <svg viewBox="0 0 24 24"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><path d="M16 17l5-5-5-5"/><path d="M21 12H9"/></svg>
+            Logout
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="main-content">
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+
+  <!-- ======= Mobile bottom nav ======= -->
+  <nav class="mobile-nav">
+    <a href="{{ url_for('dashboard') }}" class="{{ 'active' if active == 'dashboard' }}">
+      <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>
+      Home
+    </a>
+    <a href="{{ url_for('equipment_page') }}" class="{{ 'active' if active == 'equipment' }}">
+      <svg viewBox="0 0 24 24"><path d="M20 7h-8l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/></svg>
+      Equipment
+    </a>
+    <a href="{{ url_for('maintenance_page') }}" class="{{ 'active' if active == 'maintenance' }}">
+      <svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-3 3-3-3z"/></svg>
+      Maintenance
+    </a>
+    <a href="{{ url_for('prediction_page') }}" class="{{ 'active' if active == 'prediction' }}">
+      <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4"/><path d="M15 2v4"/><path d="M9 18v4"/><path d="M15 18v4"/><path d="M2 9h4"/><path d="M18 9h4"/><path d="M2 15h4"/><path d="M18 15h4"/></svg>
+      Predict
+    </a>
+    <a href="{{ url_for('chatbot_page') }}" class="{{ 'active' if active == 'chatbot' }}">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      AI
+    </a>
+  </nav>
+</div>
+
+<div class="toast-root"></div>
+
+<script src="{{ url_for('static', filename='js/api.js') }}"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script src="{{ url_for('static', filename='js/charts.js') }}"></script>
+<script>
+(function () {
+  // Logout
+  document.querySelectorAll("[data-logout]").forEach(function (btn) {
+    btn.addEventListener("click", function () {
+      API.logout().then(function () { window.location.href = "/login"; })
+        .catch(function () { window.location.href = "/login"; });
+    });
+  });
+
+  // Header search across equipment
+  API.getEquipment().then(function (d) {
+    window.setupHeaderSearch(d.equipment || []);
+  }).catch(function () {});
+
+  // Notification bell + dropdown
+  function renderNotifications() {
+    API.getNotifications().then(function (d) {
+      var list = d.notifications || [];
+      var unread = list.filter(function (n) { return !n.is_read; }).length;
+      list.forEach(function (n) {
+        if (n.notification_id > lastSeenId) lastSeenId = n.notification_id;
+      });
+      document.querySelectorAll("[data-notif-badge]").forEach(function (el) {
+        el.textContent = unread || "";
+        el.style.display = unread ? "block" : "none";
+      });
+      var menu = document.getElementById("notifMenu");
+      if (!menu) return;
+      var html = '<div class="nm-head"><span>Notifications</span>' +
+        '<button class="btn btn-ghost btn-sm" id="markAllRead">Mark all read</button></div>';
+      if (!list.length) {
+        html += '<div class="empty-state" style="padding:26px 14px">' +
+          '<p>You\'re all caught up — no notifications.</p></div>';
+      } else {
+        html += list.slice(0, 8).map(function (n) {
+          var ic = { maintenance: "var(--warn)", risk: "var(--danger)",
+                     prediction: "var(--info)", data: "var(--primary-light)",
+                     info: "var(--primary-light)" }[n.notification_type] || "var(--primary-light)";
+          var icon = '<svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>';
+          return '<div class="notif-item ' + (n.is_read ? "" : "unread") + '" data-nid="' + n.notification_id + '">' +
+            '<span class="n-ic" style="background:' + ic + '">' + icon + '</span>' +
+            '<div><b>' + escapeHtml(n.title) + '</b><p>' + escapeHtml(n.message) + '</p>' +
+            '<time>' + fmtDateTime(n.created_at) + '</time></div>' +
+            (n.is_read ? "" : '<span class="n-dot"></span>') + '</div>';
+        }).join("");
+      }
+      menu.innerHTML = html;
+      menu.querySelectorAll(".notif-item").forEach(function (el) {
+        el.addEventListener("click", function () {
+          API.markNotificationsRead().then(function () {
+            window.location.href = "/notifications";
+          });
+        });
+      });
+      var markBtn = menu.querySelector("#markAllRead");
+      if (markBtn) markBtn.addEventListener("click", function (e) {
+        e.stopPropagation();
+        API.markNotificationsRead().then(function () {
+          renderNotifications();
+          toast("All notifications marked as read.");
+        }).catch(handleApiError);
+      });
+    }).catch(function () {});
+  }
+  var lastSeenId = 0;
+
+  renderNotifications();
+  var bell = document.getElementById("notifBell");
+  if (bell) {
+    bell.addEventListener("click", function () {
+      setTimeout(renderNotifications, 30);
+    });
+    // Real-time dashboard updates: lightweight, secure polling every 30s.
+    // Only new notifications (since_id) travel; the session cookie authenticates.
+    setInterval(function () {
+      API.pollNotifications(lastSeenId).then(function (d) {
+        lastSeenId = d.latest_id || lastSeenId;
+        document.querySelectorAll("[data-notif-badge]").forEach(function (el) {
+          el.textContent = d.unread || "";
+          el.style.display = d.unread ? "block" : "none";
+        });
+        if (d.new && d.new.length) {
+          toast("🔔 " + d.new[0].title);
+          renderNotifications();
+        }
+      }).catch(function () { /* offline — retry on next tick */ });
+    }, 30000);
+  }
+})();
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>

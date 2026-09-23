@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Verify Email — {{ APP_NAME }}</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23166534'/%3E%3Cpath d='M32 12c2 14-8 24-20 26 2 13 12 22 20 24 8-2 18-11 20-24-12-2-22-12-20-26z' fill='%2322c55e'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth-body">
+<div class="auth-card">
+  <a class="back-link" href="{{ url_for('index') }}">
+    <svg viewBox="0 0 24 24"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+    Back to home
+  </a>
+  <div class="auth-logo">
+    <span class="brand-badge"><svg viewBox="0 0 24 24"><path d="M12 3c.5 4.5-2.5 8-7 8.5C5.5 8 8.5 4 12 3z"/><path d="M12 3c-.5 4.5 2.5 8 7 8.5C18.5 8 15.5 4 12 3z"/><path d="M12 11.5V21"/></svg></span>
+    {{ APP_NAME }}
+  </div>
+  <h1>Verify your email</h1>
+  <p class="sub">Confirm your email address to unlock predictions, alerts and the AI assistant.</p>
+
+  <div id="verifyState" class="card" style="text-align:center;padding:22px">
+    <p id="verifyMsg" style="margin:0 0 14px;color:var(--muted)">
+      {% if token %}
+      Click the button below to confirm this email address.
+      {% else %}
+      No verification token found in the link. Open the latest link from your email,
+      or request a new one from your profile page.
+      {% endif %}
+    </p>
+    {% if token %}
+    <button class="btn btn-primary" id="verifyBtn">Verify my email</button>
+    {% endif %}
+    <div id="verifyDone" style="display:none">
+      <p style="color:var(--primary);font-weight:600;margin:0 0 14px">✓ Email verified successfully</p>
+      <a class="btn btn-primary" href="{{ url_for('dashboard') }}">Go to dashboard</a>
+    </div>
+    <div id="verifyError" style="display:none">
+      <p style="color:var(--danger);font-weight:600;margin:0 0 14px" id="verifyErrorMsg"></p>
+      <a class="btn btn-outline" href="{{ url_for('dashboard') }}">Go to dashboard</a>
+    </div>
+  </div>
+
+  <p class="auth-foot">
+    Already verified? <a href="{{ url_for('login') }}">Login</a>
+  </p>
+</div>
+
+<script src="{{ url_for('static', filename='js/api.js') }}"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script>
+(function () {
+  var btn = document.getElementById("verifyBtn");
+  if (!btn) return;
+  btn.addEventListener("click", function () {
+    setBtnLoading(btn, true);
+    API.verifyEmail({{ token | tojson }})
+      .then(function () {
+        document.getElementById("verifyMsg").style.display = "none";
+        btn.style.display = "none";
+        document.getElementById("verifyDone").style.display = "block";
+      })
+      .catch(function (err) {
+        setBtnLoading(btn, false, "Verify my email");
+        document.getElementById("verifyMsg").style.display = "none";
+        btn.style.display = "none";
+        document.getElementById("verifyErrorMsg").textContent = err.message || "Verification failed.";
+        document.getElementById("verifyError").style.display = "block";
+      });
+  });
+})();
+</script>
+</body>
+</html>

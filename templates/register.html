@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create Account — {{ APP_NAME }}</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23166534'/%3E%3Cpath d='M32 12c2 14-8 24-20 26 2 13 12 22 20 24 8-2 18-11 20-24-12-2-22-12-20-26z' fill='%2322c55e'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="auth-body">
+<div class="auth-card">
+  <a class="back-link" href="{{ url_for('index') }}">
+    <svg viewBox="0 0 24 24"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+    Back to home
+  </a>
+  <div class="auth-logo">
+    <span class="brand-badge"><svg viewBox="0 0 24 24"><path d="M12 3c.5 4.5-2.5 8-7 8.5C5.5 8 8.5 4 12 3z"/><path d="M12 3c-.5 4.5 2.5 8 7 8.5C18.5 8 15.5 4 12 3z"/><path d="M12 11.5V21"/></svg></span>
+    {{ APP_NAME }}
+  </div>
+  <h1>Create your account</h1>
+  <p class="sub">Manage your farm equipment with AI-powered insights.</p>
+
+  {% if error %}
+  <div class="error-box">{{ error }}</div>
+  {% endif %}
+
+  <form id="registerForm" method="post" action="{{ url_for('register') }}" novalidate>
+    <div class="form-grid">
+      <div class="field full" id="f-name">
+        <label for="name">Full Name <span class="req">*</span></label>
+        <input type="text" id="name" name="name" placeholder="Ahmet Yılmaz" autocomplete="name" required>
+        <span class="err-msg">Please enter your full name (min. 2 characters).</span>
+      </div>
+      <div class="field full" id="f-email">
+        <label for="email">Email <span class="req">*</span></label>
+        <input type="email" id="email" name="email" placeholder="you@farm.com" autocomplete="email" required>
+        <span class="err-msg">Enter a valid email address.</span>
+      </div>
+      <div class="field full" id="f-phone">
+        <label for="phone">Phone Number <span class="req">*</span></label>
+        <input type="tel" id="phone" name="phone" placeholder="+91 9876543210" autocomplete="tel" required>
+        <span class="err-msg">Enter a valid phone number.</span>
+      </div>
+      <div class="field full" id="f-role">
+        <label for="role">Role</label>
+        <select id="role" name="role" autocomplete="organization">
+          <option value="Farmer" selected>Farmer</option>
+          <option value="Technician">Technician</option>
+        </select>
+        <span class="err-msg">Choose a role.</span>
+      </div>
+      <div class="field" id="f-password">
+        <label for="password">Password <span class="req">*</span></label>
+        <input type="password" id="password" name="password" placeholder="Min. 6 characters" autocomplete="new-password" required>
+        <span class="err-msg">Password must be at least 6 characters.</span>
+      </div>
+      <div class="field" id="f-confirm">
+        <label for="confirm_password">Confirm Password <span class="req">*</span></label>
+        <input type="password" id="confirm_password" name="confirm_password" placeholder="Repeat password" autocomplete="new-password" required>
+        <span class="err-msg">Passwords do not match.</span>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-block" type="submit" id="regBtn" style="margin-top:18px">Create Account</button>
+  </form>
+  <p class="auth-foot">
+    Already have an account? <a href="{{ url_for('login') }}">Login</a>
+  </p>
+</div>
+
+<script src="{{ url_for('static', filename='js/api.js') }}"></script>
+<script src="{{ url_for('static', filename='js/app.js') }}"></script>
+<script>
+(function () {
+  var form = document.getElementById("registerForm");
+  var btn = document.getElementById("regBtn");
+
+  function setError(id, has) {
+    document.getElementById(id).classList.toggle("error", has);
+  }
+
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var name = document.getElementById("name").value.trim();
+    var email = document.getElementById("email").value.trim();
+    var phone = document.getElementById("phone").value.trim();
+    var pass = document.getElementById("password").value;
+    var confirm = document.getElementById("confirm_password").value;
+    var role = document.getElementById("role").value;
+
+    var nameOk = name.length >= 2;
+    var emailOk = /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email);
+    var phoneOk = /^[+0-9 ()-]{7,20}$/.test(phone);
+    var passOk = pass.length >= 6;
+    var confirmOk = pass === confirm && pass !== "";
+
+    setError("f-name", !nameOk);
+    setError("f-email", !emailOk);
+    setError("f-phone", !phoneOk);
+    setError("f-password", !passOk);
+    setError("f-confirm", !confirmOk);
+    if (!nameOk || !emailOk || !phoneOk || !passOk || !confirmOk) return;
+
+    setBtnLoading(btn, true);
+    API.register({ name, email, phone, password: pass, confirm_password: confirm, role })
+      .then(function (d) { redirectTo(d.redirect || "/dashboard"); })
+      .catch(function (err) {
+        setBtnLoading(btn, false, "Create Account");
+        handleApiError(err);
+      });
+  });
+})();
+</script>
+</body>
+</html>

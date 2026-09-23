@@ -1,0 +1,11 @@
+# Optional training-only extras — install on top of requirements.txt only when
+# (re)training the ML model locally:
+#   pip install -r requirements.txt -r requirements-dev.txt
+#   python model/train_model.py
+#
+# The committed model/predictive_model.pkl trains fine with plain scikit-learn
+# (GradientBoosting). xgboost upgrades the trainer to XGBClassifier when present;
+# if you retrain with it installed, also bump the scikit-learn/numpy pins in
+# requirements.txt to match the environment that produced the new pickle.
+pandas==2.2.2
+xgboost==2.1.1

@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+{% block title %}Dashboard — {{ APP_NAME }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Welcome back, Farmer 👋</h1>
+    <p>Here's the health of your farm equipment today.</p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-outline" href="{{ url_for('equipment_page') }}">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+      Add Equipment
+    </a>
+    <a class="btn btn-primary" href="{{ url_for('prediction_page') }}">
+      <svg viewBox="0 0 24 24"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.9 4.9l2.8 2.8"/><path d="M16.3 16.3l2.8 2.8"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.9 19.1l2.8-2.8"/><path d="M16.3 7.7l2.8-2.8"/></svg>
+      Analyze Equipment
+    </a>
+  </div>
+</div>
+
+<!-- Stat cards -->
+<div class="grid-4">
+  <div class="stat-card">
+    <span class="stat-ic green"><svg viewBox="0 0 24 24"><path d="M20 7h-8l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/></svg></span>
+    <div><b>{{ data.stats.total }}</b><span>Total Equipment</span></div>
+  </div>
+  <div class="stat-card">
+    <span class="stat-ic blue"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></span>
+    <div><b>{{ data.stats.good }}</b><span>In Good Condition</span></div>
+  </div>
+  <div class="stat-card">
+    <span class="stat-ic amber"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></span>
+    <div><b>{{ data.stats.due }}</b><span>Maintenance Due</span></div>
+  </div>
+  <div class="stat-card">
+    <span class="stat-ic red"><svg viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg></span>
+    <div><b>{{ data.stats.high_risk }}</b><span>High Risk Equipment</span></div>
+  </div>
+</div>
+
+<!-- Health overview -->
+<div class="card" style="margin-top:18px">
+  <div class="card-head">
+    <div><h3>Equipment Health Overview</h3><span class="sub">Current status, maintenance risk and service dates</span></div>
+    <a href="{{ url_for('equipment_page') }}" class="btn btn-ghost btn-sm">View all →</a>
+  </div>
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr>
+          <th>Equipment</th><th>Type</th><th>Status</th><th>Maintenance Risk</th>
+          <th>Risk Prob.</th><th>Last Service</th><th>Next Service</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for e in data.health %}
+        <tr>
+          <td><a class="eq-name" href="{{ url_for('equipment_details', equipment_id=e.equipment_id) }}">{{ e.equipment_name }}</a></td>
+          <td>{{ e.equipment_type }}</td>
+          <td>{{ e.status | status_pill | safe }}</td>
+          <td>{{ e.risk_level | risk_pill | safe }}</td>
+          <td>{{ (e.risk_probability ~ '%') if e.risk_probability is not none else '—' }}</td>
+          <td>{{ e.last_service_date | fmt_date }}</td>
+          <td>{{ e.next_service_date | fmt_date }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7"><div class="empty-state" style="padding:26px">
+          <b>No equipment yet</b><p>Add your first machine to start monitoring.</p>
+          <a class="btn btn-primary btn-sm" href="{{ url_for('equipment_page') }}">Add Equipment</a>
+        </div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Charts -->
+<div class="grid-2" style="margin-top:18px">
+  <div class="card">
+    <div class="card-head"><h3>Equipment Condition</h3><span class="sub">By current status</span></div>
+    <div class="flex gap-12" style="align-items:center;flex-wrap:wrap">
+      <div id="chartCondition"></div>
+      <div id="legendCondition" class="chart-legend" style="flex:1;min-width:150px"></div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-head"><h3>Maintenance History</h3><span class="sub">Services per month (last 6 months)</span></div>
+    <div id="chartMaintenance" style="min-height:180px"></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><h3>Risk Distribution</h3><span class="sub">Latest prediction risk per equipment</span></div>
+    <div id="chartRisk"></div>
+  </div>
+  <div class="card">
+    <div class="card-head"><h3>Equipment Usage</h3><span class="sub">Operating hours</span></div>
+    <div id="chartUsage"></div>
+  </div>
+</div>
+
+<!-- Recent activity -->
+<div class="card" style="margin-top:18px">
+  <div class="card-head">
+    <div><h3>Recent Activity</h3><span class="sub">Latest maintenance, predictions and alerts</span></div>
+  </div>
+  <div class="activity">
+    {% for a in data.activity %}
+    <div class="activity-item">
+      <span class="a-ic" style="background:{{ 'var(--primary-light)' if a.type == 'maintenance' else ('var(--info)' if a.type == 'prediction' else 'var(--warn)') }}">
+        {% if a.type == 'maintenance' %}
+        <svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-3 3-3-3z"/></svg>
+        {% elif a.type == 'prediction' %}
+        <svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
+        {% else %}
+        <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+        {% endif %}
+      </span>
+      <div class="a-body"><b>{{ a.text }}</b><p>{{ a.detail }}</p></div>
+      <time>{{ a.date | fmt_datetime }}</time>
+    </div>
+    {% else %}
+    <div class="empty-state"><b>No activity yet</b><p>Recorded maintenance and AI predictions will appear here.</p></div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  var d = {{ data | tojson }};
+  var charts = d.charts || {};
+
+  function legend(containerId, chart) {
+    var el = document.getElementById(containerId);
+    if (!el) return;
+    el.innerHTML = (chart.labels || []).map(function (lb, i) {
+      return '<div class="row"><span class="swatch" style="background:' + chart.colors[i] + '"></span>' +
+        '<span>' + escapeHtml(lb) + '</span><span class="val">' + chart.values[i] + '</span></div>';
+    }).join("");
+  }
+
+  if (charts.condition) {
+    Charts.donut(document.getElementById("chartCondition"), charts.condition, { size: 170, centerLabel: "total" });
+    legend("legendCondition", charts.condition);
+  }
+  if (charts.maintenance) {
+    Charts.line(document.getElementById("chartMaintenance"), charts.maintenance, { color: "#166534" });
+  }
+  if (charts.risk) {
+    Charts.donut(document.getElementById("chartRisk"), charts.risk, { size: 200, centerLabel: "equipment" });
+  }
+  if (charts.usage) {
+    Charts.hbars(document.getElementById("chartUsage"), charts.usage, { color: "#166534" });
+  }
+})();
+</script>
+{% endblock %}

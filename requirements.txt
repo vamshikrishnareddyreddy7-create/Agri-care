@@ -1,0 +1,10 @@
+# Runtime dependencies (pinned to the versions the committed ML model was
+# trained with — a numpy 2.x pickle cannot be loaded by numpy 1.x, so do not
+# downgrade these).
+Flask==3.0.3
+gunicorn==22.0.0
+python-dotenv==1.0.1
+PyMySQL==1.1.1
+joblib==1.6.0
+numpy==2.4.6
+scikit-learn==1.9.0

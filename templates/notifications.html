@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% block title %}Notifications — {{ APP_NAME }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Notifications</h1>
+    <p>Maintenance reminders, risk alerts, delivery status and prediction updates.</p>
+  </div>
+  <div class="actions">
+    <button class="btn btn-outline" id="markAllBtn">Mark all as read</button>
+  </div>
+</div>
+
+<div class="card" style="padding:0;overflow:hidden;margin-bottom:20px">
+  <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap;gap:10px">
+    <b>Alert delivery history</b>
+    <span style="font-size:.8rem;color:var(--muted)">
+      Email {{ 'simulated (demo mode)' if email_simulated else 'via SMTP' }} ·
+      SMS {{ 'simulated (demo mode)' if sms_simulated else 'via SMS provider' }}
+    </span>
+  </div>
+  <div id="alertHistory">
+    <div style="padding:14px 18px;color:var(--muted);font-size:.85rem">Loading alert history…</div>
+  </div>
+</div>
+
+<div class="notif-list" id="notifList">
+  {% for n in notifications %}
+  <div class="notif-card {{ 'unread' if not n.is_read else '' }}" data-id="{{ n.notification_id }}">
+    <span class="n-ic" style="background:{{ 'var(--warn)' if n.notification_type == 'maintenance' else ('var(--danger)' if n.notification_type == 'risk' else ('var(--info)' if n.notification_type == 'prediction' else 'var(--primary-light)')) }}">
+      {% if n.notification_type == 'risk' %}
+      <svg viewBox="0 0 24 24"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/></svg>
+      {% elif n.notification_type == 'prediction' %}
+      <svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
+      {% else %}
+      <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.7 21a2 2 0 0 1-3.4 0"/></svg>
+      {% endif %}
+    </span>
+    <div style="flex:1">
+      <b>{{ n.title }}</b>
+      <p>{{ n.message }}</p>
+      <time>{{ n.created_at | fmt_datetime }}</time>
+    </div>
+    {% if not n.is_read %}<span class="n-dot" style="width:9px;height:9px;border-radius:50%;background:var(--primary-light);flex:none;margin-top:6px"></span>{% endif %}
+  </div>
+  {% else %}
+  <div class="card empty-state"><b>You're all caught up</b><p>New maintenance reminders and risk alerts will appear here.</p></div>
+  {% endfor %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+(function () {
+  var SEV = {
+    low:      { bg: "#e7f6ec", fg: "#166534", label: "Low" },
+    medium:   { bg: "#fef3c7", fg: "#92400e", label: "Medium" },
+    high:     { bg: "#fee2e2", fg: "#991b1b", label: "High" },
+    critical: { bg: "#991b1b", fg: "#fff",    label: "Critical" }
+  };
+
+  function sevChip(s) {
+    var c = SEV[(s || "low").toLowerCase()] || SEV.low;
+    return '<span style="display:inline-block;padding:2px 10px;border-radius:999px;font-size:.72rem;font-weight:600;background:' +
+      c.bg + ';color:' + c.fg + '">' + c.label + '</span>';
+  }
+
+  function deliveryChip(status, channel) {
+    var map = {
+      sent:      { fg: "#166534", bg: "#e7f6ec", t: channel + " sent" },
+      simulated: { fg: "#1e40af", bg: "#dbeafe", t: channel + " simulated" },
+      failed:    { fg: "#991b1b", bg: "#fee2e2", t: channel + " failed" },
+      not_sent:  { fg: "#6b7280", bg: "#f3f4f6", t: channel + " not sent" }
+    };
+    var c = map[status] || map.not_sent;
+    return '<span style="display:inline-block;padding:2px 8px;border-radius:999px;font-size:.7rem;background:' +
+      c.bg + ';color:' + c.fg + '">' + c.t + '</span>';
+  }
+
+  function renderAlerts(alerts) {
+    var box = document.getElementById("alertHistory");
+    if (!alerts || !alerts.length) {
+      box.innerHTML = '<div style="padding:14px 18px;color:var(--muted);font-size:.85rem">' +
+        'No alerts dispatched yet. Run a prediction or add a maintenance record to generate one.</div>';
+      return;
+    }
+    box.innerHTML = alerts.map(function (a) {
+      return '<div style="display:flex;gap:12px;align-items:flex-start;padding:12px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap">' +
+        '<div style="flex:1;min-width:220px"><b>' + escapeHtml(a.title || "") + '</b>' +
+        '<p style="margin:2px 0">' + escapeHtml(a.message || "") + '</p>' +
+        '<span style="font-size:.75rem;color:var(--muted)">' +
+        escapeHtml(a.equipment_name || "") + ' · ' + escapeHtml(a.event_type || "") +
+        ' · ' + fmtDateTime(a.created_at) + '</span></div>' +
+        '<div style="display:flex;flex-direction:column;gap:4px;align-items:flex-end">' +
+        sevChip(a.severity) +
+        '<div style="display:flex;gap:4px">' +
+        deliveryChip(a.email_status, "Email") + deliveryChip(a.sms_status, "SMS") +
+        '</div></div></div>';
+    }).join("");
+  }
+
+  API.getAlerts().then(function (d) { renderAlerts(d.alerts); }).catch(function () {
+    document.getElementById("alertHistory").innerHTML =
+      '<div style="padding:14px 18px;color:var(--muted);font-size:.85rem">Alert history unavailable.</div>';
+  });
+
+  document.getElementById("markAllBtn").addEventListener("click", function () {
+    API.markNotificationsRead().then(function () {
+      document.querySelectorAll(".notif-card").forEach(function (c) {
+        c.classList.remove("unread");
+        var dot = c.querySelector(".n-dot");
+        if (dot) dot.remove();
+      });
+      document.querySelectorAll("[data-notif-badge]").forEach(function (el) {
+        el.textContent = "";
+        el.style.display = "none";
+      });
+      toast("All notifications marked as read.");
+    }).catch(handleApiError);
+  });
+})();
+</script>
+{% endblock %}

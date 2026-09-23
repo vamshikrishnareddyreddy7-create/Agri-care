@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% block title %}Maintenance Records — {{ APP_NAME }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Maintenance Records</h1>
+    <p>All service and repair history across your equipment.</p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-primary" href="{{ url_for('equipment_page') }}" style="display:none"></a>
+    <button class="btn btn-primary" id="addMaintBtn">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+      Add Maintenance
+    </button>
+  </div>
+</div>
+
+<div class="card" style="padding:14px 18px;margin-bottom:18px">
+  <div class="form-grid" style="grid-template-columns:2fr 1fr 1fr">
+    <div class="field"><label for="mtSearch">Search</label>
+      <input type="text" id="mtSearch" placeholder="Search by equipment, service type, problem…"></div>
+    <div class="field"><label for="mtEquip">Equipment</label>
+      <select id="mtEquip"><option value="">All equipment</option>
+        {% for e in equipment %}<option value="{{ e.equipment_id }}">{{ e.equipment_name }}</option>{% endfor %}
+      </select></div>
+    <div class="field"><label for="mtType">Service Type</label>
+      <select id="mtType"><option value="">All types</option>
+        <option>Regular Service</option><option>Oil Change</option><option>Engine Repair</option>
+        <option>Brake Service</option><option>Transmission Service</option><option>Cooling System</option>
+        <option>Electrical Repair</option><option>Hydraulic Repair</option><option>Other</option>
+      </select></div>
+  </div>
+</div>
+
+<div id="maintWrap"></div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.MAINTENANCE = {{ maintenance | tojson }};
+window.MAINT_EQUIPMENT = {{ equipment | tojson }};
+window.MAINT_FILTER_EQUIPMENT = {{ request.args.get('equipment_id') | tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/maintenance.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,218 @@
+{% extends "base.html" %}
+{% block title %}Profile — {{ APP_NAME }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>My Profile</h1>
+    <p>Manage your account, farm details, verification and notification settings.</p>
+  </div>
+</div>
+
+<div class="grid-2">
+  <!-- Account -->
+  <div>
+    <div class="card">
+      <div class="card-head">
+        <div><h3>Account Information</h3></div>
+      </div>
+      <div class="flex items-center gap-12" style="margin-bottom:18px">
+        <span class="avatar-lg">{{ (profile.name or 'U')[0]|upper }}</span>
+        <div>
+          <b style="font-size:1.05rem">{{ profile.name }}</b>
+          <p class="text-muted text-sm">{{ profile.email }}</p>
+          <div style="display:flex;gap:8px;margin-top:4px;flex-wrap:wrap">
+            {% if profile.email_verified %}
+            <span class="pill pill-healthy">✓ Email verified</span>
+            {% else %}
+            <span class="pill pill-warning">⚠ Email not verified</span>
+            {% endif %}
+            {% if profile.phone_verified %}
+            <span class="pill pill-healthy">✓ Phone verified</span>
+            {% elif profile.phone %}
+            <span class="pill pill-warning">⚠ Phone not verified</span>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+
+      {% if not profile.email_verified %}
+      <div class="card" style="margin-bottom:16px;background:var(--warn-bg,#fef3c7);border:1px solid var(--warn,#f59e0b)">
+        <b>Verify your email to unlock predictions and alerts.</b>
+        <p class="text-sm text-muted" style="margin:4px 0 10px">We sent a verification link when you registered. Didn't get it?</p>
+        <button class="btn btn-outline btn-sm" id="resendVerifyBtn">Resend verification email</button>
+        <p class="hint text-sm" id="resendDemo" style="display:none;margin-top:8px"></p>
+      </div>
+      {% endif %}
+
+      <form id="profileForm" novalidate>
+        <div class="form-grid">
+          <div class="field full" id="pf-name">
+            <label>Full Name <span class="req">*</span></label>
+            <input name="name" value="{{ profile.name }}" required>
+            <span class="err-msg">Full name is required.</span>
+          </div>
+          <div class="field full" id="pf-email">
+            <label>Email <span class="req">*</span></label>
+            <input name="email" type="email" value="{{ profile.email }}" required>
+            <span class="err-msg">Enter a valid email address.</span>
+          </div>
+          <div class="field full">
+            <label>Phone Number</label>
+            <input name="phone" value="{{ profile.phone or '' }}" placeholder="+90 5xx xxx xx xx">
+          </div>
+          <div class="field full">
+            <label>Farm Name</label>
+            <input name="farm_name" value="{{ profile.farm_name or '' }}" placeholder="e.g. Green Valley Farm">
+          </div>
+          <div class="field full">
+            <label>Location</label>
+            <input name="location" value="{{ profile.location or '' }}" placeholder="City, region">
+          </div>
+        </div>
+        <div class="form-actions" style="justify-content:flex-start">
+          <button class="btn btn-primary" type="submit" id="profileSave">Save Changes</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Phone verification -->
+    <div class="card" style="margin-top:18px">
+      <div class="card-head"><div><h3>Phone Verification</h3></div></div>
+      {% if profile.phone_verified %}
+      <p style="margin:0"><span class="pill pill-healthy">✓ Phone verified</span>
+         <span class="text-muted" style="margin-left:8px">{{ profile.phone }}</span></p>
+      <p class="hint text-sm text-muted" style="margin-top:8px">Changing your phone number below will require re-verification.</p>
+      {% else %}
+      <p class="text-sm text-muted" style="margin-top:0">Verify your phone number with a one-time code to receive
+         critical SMS alerts.</p>
+      <div class="form-grid">
+        <div class="field full">
+          <label>Phone number</label>
+          <input id="otpPhone" value="{{ profile.phone or '' }}" placeholder="+90 5xx xxx xx xx">
+        </div>
+      </div>
+      <div class="form-actions" style="justify-content:flex-start">
+        <button class="btn btn-primary btn-sm" id="sendOtpBtn">Send verification code</button>
+      </div>
+      <div id="otpStep2" style="display:none;margin-top:12px">
+        <div class="form-grid">
+          <div class="field">
+            <label>6-digit code</label>
+            <input id="otpCode" placeholder="000000" inputmode="numeric" maxlength="6">
+          </div>
+        </div>
+        <div class="form-actions" style="justify-content:flex-start">
+          <button class="btn btn-primary btn-sm" id="verifyOtpBtn">Verify phone</button>
+        </div>
+        <p class="hint text-sm" id="otpDemoHint" style="display:none"></p>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Password -->
+    <div class="card" style="margin-top:18px">
+      <div class="card-head"><div><h3>Change Password</h3></div></div>
+      <form id="passwordForm" novalidate>
+        <div class="form-grid">
+          <div class="field full" id="pf-cur">
+            <label>Current Password <span class="req">*</span></label>
+            <input name="current_password" type="password" autocomplete="current-password">
+            <span class="err-msg">Enter your current password.</span>
+          </div>
+          <div class="field" id="pf-new">
+            <label>New Password <span class="req">*</span></label>
+            <input name="new_password" type="password" autocomplete="new-password">
+            <span class="err-msg">Minimum 6 characters.</span>
+          </div>
+          <div class="field" id="pf-conf">
+            <label>Confirm New Password <span class="req">*</span></label>
+            <input name="confirm_password" type="password" autocomplete="new-password">
+            <span class="err-msg">Passwords do not match.</span>
+          </div>
+        </div>
+        <div class="form-actions" style="justify-content:flex-start">
+          <button class="btn btn-primary" type="submit" id="pwdSave">Update Password</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Preferences -->
+  <div>
+    <div class="card">
+      <div class="card-head"><div><h3>Notification Preferences</h3></div></div>
+      <div class="pref-row">
+        <div><b>Email notifications</b><p>Receive alert emails for equipment events</p></div>
+        <label class="switch"><input type="checkbox" id="npref-email_notifications"><span class="track"></span></label>
+      </div>
+      <div class="pref-row">
+        <div><b>SMS notifications</b><p>Text alerts for critical events (requires verified phone)</p></div>
+        <label class="switch"><input type="checkbox" id="npref-sms_notifications"><span class="track"></span></label>
+      </div>
+      <div class="pref-row">
+        <div><b>Maintenance alerts</b><p>Reminders when service is due or approaching</p></div>
+        <label class="switch"><input type="checkbox" id="npref-maintenance_alerts"><span class="track"></span></label>
+      </div>
+      <div class="pref-row">
+        <div><b>Prediction alerts</b><p>Alerts when the AI model flags a machine</p></div>
+        <label class="switch"><input type="checkbox" id="npref-prediction_alerts"><span class="track"></span></label>
+      </div>
+      <div class="pref-row">
+        <div><b>Preferred method</b><p>Channel used for routine notifications</p></div>
+        <select id="npref-preferred_method" style="padding:8px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--card);color:var(--text)">
+          <option value="email">Email</option>
+          <option value="sms">SMS</option>
+          <option value="both">Both</option>
+        </select>
+      </div>
+      <p class="hint text-sm text-muted" style="margin-top:8px">
+        Severity thresholds (which events email/SMS you) are set by the server administrator
+        via <code>ALERT_EMAIL_MIN_SEVERITY</code> / <code>ALERT_SMS_MIN_SEVERITY</code>.
+      </p>
+      <div class="form-actions" style="justify-content:flex-start;margin-top:10px">
+        <button class="btn btn-outline btn-sm" id="testAlertBtn">Send test alert</button>
+      </div>
+      <p class="hint text-sm" id="testAlertResult" style="display:none;margin-top:8px"></p>
+    </div>
+
+    <div class="card" style="margin-top:18px">
+      <div class="card-head"><div><h3>Settings</h3></div></div>
+      <div class="pref-row">
+        <div><b>Theme</b><p>Light or dark appearance</p></div>
+        <select id="pref-theme" style="padding:8px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--card);color:var(--text)">
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
+        </select>
+      </div>
+      <div class="pref-row">
+        <div><b>Language</b><p>Interface language</p></div>
+        <select id="pref-language" style="padding:8px 12px;border:1px solid var(--border-strong);border-radius:9px;background:var(--card);color:var(--text)">
+          <option value="en">English</option>
+          <option value="tr">Türkçe (placeholder)</option>
+          <option value="fr">Français (placeholder)</option>
+        </select>
+      </div>
+      <p class="hint text-sm text-muted" style="margin-top:8px">Theme is applied instantly and saved in your browser.</p>
+    </div>
+
+    <div class="card" style="margin-top:18px">
+      <div class="card-head"><div><h3>Account Security</h3></div></div>
+      <ul style="padding-left:18px;font-size:.85rem;color:var(--muted);display:flex;flex-direction:column;gap:8px">
+        <li>Passwords are stored as secure hashes (PBKDF2 via werkzeug).</li>
+        <li>Sessions are HTTP-only cookies; API calls are CSRF-protected.</li>
+        <li>Verification tokens and OTP codes are stored hashed and expire automatically.</li>
+        <li>{% if demo_banner %}You are using the Demo account — real accounts are stored in MySQL when configured.{% else %}Your data is stored in the MySQL database.{% endif %}</li>
+      </ul>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.PROFILE_PREFS = {{ prefs | tojson }};
+window.NOTIF_PREFS = {{ notif_prefs | tojson }};
+window.PROFILE = {{ profile | tojson }};
+</script>
+<script src="{{ url_for('static', filename='js/profile.js') }}"></script>
+{% endblock %}

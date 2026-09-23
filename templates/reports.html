@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+{% block title %}Reports — {{ APP_NAME }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Reports</h1>
+    <p>Equipment, maintenance, prediction and risk reports for your farm.</p>
+  </div>
+  <div class="actions">
+    <button class="btn btn-outline" id="printBtn">
+      <svg viewBox="0 0 24 24"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+      Print
+    </button>
+    <button class="btn btn-outline" id="csvBtn">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+      Export CSV
+    </button>
+    <button class="btn btn-primary" id="generateBtn">
+      <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5"/><path d="M12 15V3"/></svg>
+      Generate Report
+    </button>
+  </div>
+</div>
+
+<div class="card">
+  <div class="tabs">
+    <button class="tab active" data-type="equipment">Equipment Report</button>
+    <button class="tab" data-type="maintenance">Maintenance Report</button>
+    <button class="tab" data-type="prediction">Prediction Report</button>
+    <button class="tab" data-type="risk">Risk Report</button>
+  </div>
+
+  <div class="report-toolbar">
+    <div class="field"><label>Equipment</label>
+      <select id="repEquip"><option value="">All equipment</option>
+        {% for e in equipment %}<option value="{{ e.equipment_id }}">{{ e.equipment_name }}</option>{% endfor %}
+      </select></div>
+    <div class="field"><label>From date</label><input type="date" id="repFrom"></div>
+    <div class="field"><label>To date</label><input type="date" id="repTo"></div>
+    <div class="field"><label>Risk level</label>
+      <select id="repRisk"><option value="">All risks</option><option>Low</option><option>Medium</option><option>High</option></select></div>
+  </div>
+
+  <div class="report-title">
+    <span id="reportTitle">Equipment Report</span>
+    <span id="reportMeta" class="text-sm" style="color:var(--muted);font-weight:500"></span>
+  </div>
+  <div id="reportWrap">
+    <div class="skeleton" style="height:200px"></div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/reports.js') }}"></script>
+{% endblock %}

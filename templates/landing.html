@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>{{ APP_NAME }} — Smart Farm Equipment Management with AI</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='16' fill='%23166534'/%3E%3Cpath d='M32 12c2 14-8 24-20 26 2 13 12 22 20 24 8-2 18-11 20-24-12-2-22-12-20-26z' fill='%2322c55e'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+<style>
+  /* Landing page is a marketing page: reuse design tokens with full-width layout */
+  body{background:#f6faf6}
+  .lp-nav{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--border)}
+  .lp-nav .inner{max-width:1160px;margin:0 auto;padding:0 24px;display:flex;align-items:center;justify-content:space-between;height:68px}
+  .lp-nav .brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.15rem;color:var(--primary-dark)}
+  .lp-nav .links{display:flex;gap:26px}
+  .lp-nav .links a{font-size:.95rem;font-weight:500;color:#374151}
+  .lp-nav .links a:hover{color:var(--primary)}
+  .lp-nav .cta{display:flex;gap:12px}
+  .lp-hero{padding:84px 0 96px;overflow:hidden;background:
+    radial-gradient(1000px 420px at 85% -10%,rgba(134,239,172,.28),transparent 60%),
+    radial-gradient(800px 380px at -10% 110%,rgba(22,101,52,.10),transparent 55%),
+    linear-gradient(180deg,#eef8f0 0%,#f6faf6 100%)}
+  .lp-hero .grid{max-width:1160px;margin:0 auto;padding:0 24px;display:grid;grid-template-columns:1.05fr .95fr;gap:56px;align-items:center}
+  .eyebrow{display:inline-flex;align-items:center;gap:8px;background:#e6f5ea;color:var(--primary);border:1px solid #c9e8d2;border-radius:999px;padding:6px 14px;font-size:.8rem;font-weight:600}
+  .eyebrow .dot{width:7px;height:7px;border-radius:50%;background:var(--primary-light);animation:pulse 2s infinite}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+  .lp-hero h1{font-size:3rem;line-height:1.12;letter-spacing:-.02em;color:var(--primary-deep);margin:20px 0 16px;font-weight:800}
+  .lp-hero h1 .green{color:var(--primary-light)}
+  .lp-hero .lead{font-size:1.12rem;color:var(--muted);max-width:520px}
+  .lp-hero .actions{display:flex;gap:14px;margin-top:30px;flex-wrap:wrap}
+  .lp-hero .stats{display:flex;gap:36px;margin-top:44px;flex-wrap:wrap}
+  .lp-hero .stats strong{display:block;font-size:1.6rem;color:var(--primary-dark);font-weight:800}
+  .lp-hero .stats span{font-size:.88rem;color:var(--muted)}
+  .mock{background:var(--card);border-radius:20px;box-shadow:var(--shadow-lg);border:1px solid var(--border);overflow:hidden;transform:rotate(-1deg)}
+  .mock-bar{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;background:var(--primary-deep);color:#fff}
+  .mock-bar .m-title{font-weight:600;font-size:.9rem;display:flex;align-items:center;gap:8px}
+  .mock-dot{width:9px;height:9px;border-radius:50%;background:#4ade80}
+  .mock-body{padding:20px}
+  .mock-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+  .m-stat{background:#f2f8f4;border:1px solid #e3efe7;border-radius:12px;padding:12px 10px;text-align:center}
+  .m-stat b{display:block;font-size:1.25rem;color:var(--primary-dark)}
+  .m-stat span{font-size:.68rem;color:var(--muted);font-weight:600;text-transform:uppercase}
+  .mock-flex{display:flex;gap:16px;align-items:center}
+  .donut-wrap{flex:none;position:relative;width:120px;height:120px}
+  .donut-wrap svg{width:120px;height:120px;transform:rotate(-90deg)}
+  .donut-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+  .donut-center b{font-size:1.3rem;color:var(--primary-dark)}
+  .donut-center span{font-size:.66rem;color:var(--muted);font-weight:600;text-transform:uppercase}
+  .legend{flex:1;display:flex;flex-direction:column;gap:8px}
+  .legend-row{display:flex;align-items:center;gap:8px;font-size:.8rem;color:#475569}
+  .legend-swatch{width:10px;height:10px;border-radius:3px;flex:none}
+  .legend-row .val{margin-left:auto;font-weight:600;color:var(--text)}
+  .mock-rows{margin-top:16px;border-top:1px dashed var(--border);padding-top:12px;display:flex;flex-direction:column;gap:8px}
+  .mock-row{display:flex;align-items:center;gap:10px;font-size:.8rem}
+  .mock-row .eq{font-weight:600;color:var(--primary-dark);min-width:70px}
+  .mock-row .grow{flex:1;height:6px;background:#eef2ee;border-radius:99px;overflow:hidden}
+  .mock-row .grow i{display:block;height:100%;border-radius:99px}
+  .lp-section{padding:84px 0}
+  .lp-section .inner{max-width:1160px;margin:0 auto;padding:0 24px}
+  .lp-section .head{max-width:640px;margin:0 auto 52px;text-align:center}
+  .lp-section .head .kicker{color:var(--primary);font-weight:700;font-size:.85rem;letter-spacing:.08em;text-transform:uppercase}
+  .lp-section .head h2{font-size:2.1rem;color:var(--primary-deep);letter-spacing:-.02em;margin:10px 0 12px}
+  .lp-section .head p{color:var(--muted)}
+  .lp-features{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .lp-feature{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:26px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:12px;transition:transform .22s,box-shadow .22s}
+  .lp-feature:hover{transform:translateY(-4px);box-shadow:var(--shadow-lg)}
+  .f-icon{width:46px;height:46px;border-radius:12px;background:linear-gradient(135deg,#e6f5ea,#d3efe0);display:flex;align-items:center;justify-content:center}
+  .f-icon svg{width:24px;height:24px;stroke:var(--primary);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .lp-feature h3{font-size:1.08rem;color:var(--primary-dark)}
+  .lp-feature p{font-size:.92rem;color:var(--muted)}
+  .lp-how{background:linear-gradient(180deg,#f6faf6,#eef7f1)}
+  .lp-steps{display:grid;grid-template-columns:repeat(5,1fr);gap:18px}
+  .lp-step{position:relative;text-align:center;padding:0 6px}
+  .lp-step .ic{width:64px;height:64px;margin:0 auto 14px;border-radius:50%;background:var(--card);border:2px solid var(--primary-light);display:flex;align-items:center;justify-content:center;box-shadow:0 6px 16px rgba(22,101,52,.12);position:relative;z-index:1}
+  .lp-step .ic svg{width:28px;height:28px;stroke:var(--primary);fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .lp-step .num{position:absolute;top:-6px;left:50%;transform:translateX(-50%);width:24px;height:24px;border-radius:50%;background:var(--primary);color:#fff;font-size:.72rem;font-weight:700;display:flex;align-items:center;justify-content:center;z-index:2;border:2px solid #eef7f1}
+  .lp-step h4{font-size:.95rem;color:var(--primary-dark);margin-bottom:6px}
+  .lp-step p{font-size:.8rem;color:var(--muted)}
+  .lp-step:not(:last-child)::after{content:"";position:absolute;top:32px;left:calc(50% + 44px);width:calc(100% - 52px);height:2px;background:repeating-linear-gradient(90deg,var(--primary-light) 0 6px,transparent 6px 12px)}
+  .lp-benefits{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+  .lp-benefit{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:22px 24px;display:flex;gap:14px;align-items:flex-start;box-shadow:var(--shadow)}
+  .lp-benefit .f-icon{width:40px;height:40px;border-radius:10px;flex:none}
+  .lp-benefit h4{font-size:1rem;color:var(--primary-dark);margin-bottom:4px}
+  .lp-benefit p{font-size:.88rem;color:var(--muted)}
+  .lp-cta{background:linear-gradient(120deg,var(--primary-deep),var(--primary) 55%,#1f7a44);border-radius:24px;padding:56px 48px;text-align:center;color:#fff;position:relative;overflow:hidden;max-width:1160px;margin:0 auto}
+  .lp-cta h2{font-size:1.9rem;letter-spacing:-.01em;position:relative;z-index:1}
+  .lp-cta p{color:#cde9d6;margin:12px auto 26px;max-width:480px;position:relative;z-index:1}
+  .lp-cta .btn{position:relative;z-index:1;background:#fff;color:var(--primary)}
+  .lp-footer{background:var(--primary-deep);color:#c8dccf;padding:56px 0 30px;margin-top:84px}
+  .lp-footer .inner{max-width:1160px;margin:0 auto;padding:0 24px}
+  .lp-footer .grid{display:grid;grid-template-columns:1.4fr 1fr 1fr;gap:40px;margin-bottom:36px}
+  .lp-footer .f-brand{font-size:1.15rem;font-weight:700;color:#fff;display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .lp-footer p{font-size:.9rem}
+  .lp-footer h5{color:#fff;font-size:.92rem;margin-bottom:14px;text-transform:uppercase;letter-spacing:.06em}
+  .lp-footer a{display:block;font-size:.9rem;padding:4px 0;color:#c8dccf}
+  .lp-footer a:hover{color:#fff}
+  .lp-footer .bottom{border-top:1px solid rgba(255,255,255,.12);padding-top:22px;display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;font-size:.8rem;color:#9dbbaa}
+  .reveal{opacity:0;transform:translateY(22px);transition:opacity .6s ease,transform .6s ease}
+  .reveal.in{opacity:1;transform:none}
+  @media (max-width:1024px){
+    .lp-hero .grid{grid-template-columns:1fr;gap:44px}
+    .lp-hero h1{font-size:2.5rem}
+    .lp-steps{grid-template-columns:repeat(3,1fr);row-gap:40px}
+    .lp-features,.lp-benefits{grid-template-columns:repeat(2,1fr)}
+  }
+  @media (max-width:768px){
+    .lp-nav .links{display:none}
+    .lp-hero{padding:64px 0 72px}
+    .lp-hero h1{font-size:2.05rem}
+    .mock{transform:none}
+    .mock-stats{grid-template-columns:repeat(2,1fr)}
+    .lp-features,.lp-benefits{grid-template-columns:1fr}
+    .lp-steps{grid-template-columns:1fr;gap:34px}
+    .lp-step:not(:last-child)::after{display:none}
+    .lp-footer .grid{grid-template-columns:1fr;gap:28px}
+    .lp-cta{padding:44px 26px}
+    .lp-section{padding:64px 0}
+  }
+  @media (max-width:480px){
+    .mock-flex{flex-direction:column}
+    .lp-hero .actions .btn{width:100%}
+  }
+</style>
+</head>
+<body>
+
+<nav class="lp-nav">
+  <div class="inner">
+    <a class="brand" href="#top">
+      <span class="brand-badge"><svg viewBox="0 0 24 24"><path d="M12 3c.5 4.5-2.5 8-7 8.5C5.5 8 8.5 4 12 3z"/><path d="M12 3c-.5 4.5 2.5 8 7 8.5C18.5 8 15.5 4 12 3z"/><path d="M12 11.5V21"/></svg></span>
+      {{ APP_NAME }}
+    </a>
+    <div class="links">
+      <a href="#features">Features</a>
+      <a href="#how">How It Works</a>
+      <a href="#benefits">Benefits</a>
+    </div>
+    <div class="cta">
+      <a class="btn btn-outline btn-sm" href="{{ url_for('login') }}">Login</a>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('register') }}">Get Started</a>
+    </div>
+  </div>
+</nav>
+
+<header class="lp-hero" id="top">
+  <div class="grid">
+    <div class="reveal">
+      <span class="eyebrow"><span class="dot"></span> AI-Powered Farm Equipment Platform</span>
+      <h1>Smart Farm Equipment Management <span class="green">with AI</span></h1>
+      <p class="lead">Manage your agricultural equipment, monitor maintenance history, identify abnormal conditions and get AI-powered maintenance guidance in one simple platform.</p>
+      <div class="actions">
+        <a class="btn btn-primary btn-lg" href="{{ url_for('register') }}">Get Started</a>
+        <a class="btn btn-outline btn-lg" href="{{ url_for('login') }}">Login</a>
+      </div>
+      <div class="stats">
+        <div><strong>40+</strong><span>Equipment parameters tracked</span></div>
+        <div><strong>5</strong><span>Step workflow, simple to follow</span></div>
+        <div><strong>24/7</strong><span>AI maintenance assistant</span></div>
+      </div>
+    </div>
+    <div class="mock reveal">
+      <div class="mock-bar">
+        <span class="m-title">Equipment Dashboard</span><span class="mock-dot"></span>
+      </div>
+      <div class="mock-body">
+        <div class="mock-stats">
+          <div class="m-stat"><b>5</b><span>Equipment</span></div>
+          <div class="m-stat"><b>3</b><span>Good</span></div>
+          <div class="m-stat"><b>1</b><span>Due</span></div>
+          <div class="m-stat"><b>1</b><span>High Risk</span></div>
+        </div>
+        <div class="mock-flex">
+          <div class="donut-wrap">
+            <svg viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="48" fill="none" stroke="#eef2ee" stroke-width="14"/>
+              <circle cx="60" cy="60" r="48" fill="none" stroke="#22c55e" stroke-width="14" stroke-dasharray="151 301"/>
+              <circle cx="60" cy="60" r="48" fill="none" stroke="#f59e0b" stroke-width="14" stroke-dasharray="60 392" stroke-dashoffset="-151"/>
+              <circle cx="60" cy="60" r="48" fill="none" stroke="#ef4444" stroke-width="14" stroke-dasharray="30 422" stroke-dashoffset="-211"/>
+            </svg>
+            <div class="donut-center"><b>3/5</b><span>Healthy</span></div>
+          </div>
+          <div class="legend">
+            <div class="legend-row"><span class="legend-swatch" style="background:#22c55e"></span>Healthy <span class="val">60%</span></div>
+            <div class="legend-row"><span class="legend-swatch" style="background:#f59e0b"></span>Maintenance due <span class="val">20%</span></div>
+            <div class="legend-row"><span class="legend-swatch" style="background:#ef4444"></span>High risk <span class="val">20%</span></div>
+          </div>
+        </div>
+        <div class="mock-rows">
+          <div class="mock-row"><span class="eq">TR001</span><span class="pill pill-healthy">Healthy</span><span class="grow"><i style="width:18%;background:#22c55e"></i></span></div>
+          <div class="mock-row"><span class="eq">TR002</span><span class="pill pill-due">Due</span><span class="grow"><i style="width:64%;background:#f59e0b"></i></span></div>
+          <div class="mock-row"><span class="eq">SP001</span><span class="pill pill-risk">High Risk</span><span class="grow"><i style="width:88%;background:#ef4444"></i></span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<section class="lp-section" id="features">
+  <div class="inner">
+    <div class="head reveal">
+      <span class="kicker">Features</span>
+      <h2>Everything your farm equipment needs in one place</h2>
+      <p>From digital records to AI-driven insights, {{ APP_NAME }} keeps every machine — and every service — under control.</p>
+    </div>
+    <div class="lp-features">
+      <div class="lp-feature reveal">
+        <div class="f-icon"><svg viewBox="0 0 24 24"><path d="M20 7h-8l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/></svg></div>
+        <h3>Equipment Management</h3>
+        <p>Register every tractor, harvester and pump with full details — brand, model, year, hours and status.</p>
+      </div>
+      <div class="lp-feature reveal">
+        <div class="f-icon"><svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-3 3-3-3z"/></svg></div>
+        <h3>Maintenance Records</h3>
+        <p>Keep a digital service history — costs, parts replaced and next service dates, all in one timeline.</p>
+      </div>
+      <div class="lp-feature reveal">
+        <div class="f-icon"><svg viewBox="0 0 24 24"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.9 4.9l2.8 2.8"/><path d="M16.3 16.3l2.8 2.8"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.9 19.1l2.8-2.8"/><path d="M16.3 7.7l2.8-2.8"/></svg></div>
+        <h3>AI-Powered Prediction</h3>
+        <p>Operational data is analyzed by a machine learning model to flag abnormal conditions early.</p>
+      </div>
+      <div class="lp-feature reveal">
+        <div class="f-icon"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg></div>
+        <h3>Smart Recommendations</h3>
+        <p>Turn every prediction into a clear, farmer-friendly maintenance recommendation you can act on.</p>
+      </div>
+      <div class="lp-feature reveal">
+        <div class="f-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+        <h3>AI Maintenance Assistant</h3>
+        <p>Ask anything about your machines in plain language and get guidance drawn from the maintenance knowledge base.</p>
+      </div>
+      <div class="lp-feature reveal">
+        <div class="f-icon"><svg viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="M7 15l4-6 4 3 5-7"/></svg></div>
+        <h3>Reports &amp; History</h3>
+        <p>Generate equipment, maintenance and risk reports, or export to CSV for your own records.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="lp-section lp-how" id="how">
+  <div class="inner">
+    <div class="head reveal">
+      <span class="kicker">How It Works</span>
+      <h2>From machine to insight in five simple steps</h2>
+      <p>No engineering degree required — just add your equipment and let the platform do the analysis.</p>
+    </div>
+    <div class="lp-steps">
+      <div class="lp-step reveal">
+        <div class="ic"><span class="num">1</span><svg viewBox="0 0 24 24"><path d="M20 7h-8l-2-3H4a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2z"/></svg></div>
+        <h4>Add Equipment</h4><p>Register your machines with their details and operating hours.</p>
+      </div>
+      <div class="lp-step reveal">
+        <div class="ic"><span class="num">2</span><svg viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg></div>
+        <h4>Enter Equipment Data</h4><p>Add operational readings manually or upload a CSV file.</p>
+      </div>
+      <div class="lp-step reveal">
+        <div class="ic"><span class="num">3</span><svg viewBox="0 0 24 24"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.9 4.9l2.8 2.8"/><path d="M16.3 16.3l2.8 2.8"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.9 19.1l2.8-2.8"/><path d="M16.3 7.7l2.8-2.8"/></svg></div>
+        <h4>Analyze with ML</h4><p>The model checks the data for abnormal operating patterns.</p>
+      </div>
+      <div class="lp-step reveal">
+        <div class="ic"><span class="num">4</span><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+        <h4>Get Maintenance Risk</h4><p>See a clear low / medium / high risk level with a recommendation.</p>
+      </div>
+      <div class="lp-step reveal">
+        <div class="ic"><span class="num">5</span><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div>
+        <h4>Ask AI Assistant</h4><p>Get plain-language guidance on what to check and when to service.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="lp-section" id="benefits">
+  <div class="inner">
+    <div class="head reveal">
+      <span class="kicker">Benefits</span>
+      <h2>Why farmers choose {{ APP_NAME }}</h2>
+      <p>Fewer surprises in the field, better planning in the workshop.</p>
+    </div>
+    <div class="lp-benefits">
+      <div class="lp-benefit reveal"><div class="f-icon"><svg viewBox="0 0 24 24"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg></div><div><h4>Reduce unexpected downtime</h4><p>Spot abnormal conditions before they become breakdowns.</p></div></div>
+      <div class="lp-benefit reveal"><div class="f-icon"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg></div><div><h4>Improve maintenance planning</h4><p>Know what is due, when, and on which machine.</p></div></div>
+      <div class="lp-benefit reveal"><div class="f-icon"><svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M8 13h8"/><path d="M8 17h5"/></svg></div><div><h4>Keep digital maintenance records</h4><p>Every service, part and cost stored in one place.</p></div></div>
+      <div class="lp-benefit reveal"><div class="f-icon"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg></div><div><h4>Identify abnormal conditions</h4><p>ML analysis flags operating patterns that need attention.</p></div></div>
+      <div class="lp-benefit reveal"><div class="f-icon"><svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg></div><div><h4>Simple maintenance guidance</h4><p>Answers in plain language, not jargon.</p></div></div>
+      <div class="lp-benefit reveal"><div class="f-icon"><svg viewBox="0 0 24 24"><path d="M3 21h18"/><path d="M5 21V10l7-6 7 6v11"/><path d="M9 21v-6h6v6"/></svg></div><div><h4>Centralize farm equipment info</h4><p>All machines, histories and risks in one dashboard.</p></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="lp-section" style="padding-top:0">
+  <div class="inner">
+    <div class="lp-cta reveal">
+      <h2>Start managing your farm equipment smarter</h2>
+      <p>Join the platform, add your first machine and get your first AI risk analysis in minutes.</p>
+      <a class="btn btn-lg" href="{{ url_for('register') }}">Get Started Free</a>
+    </div>
+  </div>
+</section>
+
+<footer class="lp-footer">
+  <div class="inner">
+    <div class="grid">
+      <div>
+        <div class="f-brand">
+          <span class="brand-badge"><svg viewBox="0 0 24 24"><path d="M12 3c.5 4.5-2.5 8-7 8.5C5.5 8 8.5 4 12 3z"/><path d="M12 3c-.5 4.5 2.5 8 7 8.5C18.5 8 15.5 4 12 3z"/><path d="M12 11.5V21"/></svg></span>
+          {{ APP_NAME }}
+        </div>
+        <p>AI-Based Farm Equipment Management and Predictive Maintenance. Built for farmers, powered by machine learning.</p>
+      </div>
+      <div>
+        <h5>Platform</h5>
+        <a href="#features">Equipment</a>
+        <a href="#features">Maintenance</a>
+        <a href="#features">Predictive Maintenance</a>
+        <a href="#features">AI Assistant</a>
+      </div>
+      <div>
+        <h5>Project</h5>
+        <a href="#how">How It Works</a>
+        <a href="#benefits">Benefits</a>
+        <a href="{{ url_for('login') }}">Login</a>
+        <a href="{{ url_for('register') }}">Create Account</a>
+      </div>
+    </div>
+    <div class="bottom">
+      <span>© 2026 {{ APP_NAME }} · Final-year capstone project</span>
+      <span>Flask · MySQL · Scikit-learn · XGBoost · AI Chatbot</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  (function () {
+    var nav = document.querySelector(".lp-nav");
+    window.addEventListener("scroll", function () {
+      nav.style.boxShadow = window.scrollY > 10 ? "0 4px 20px rgba(16,60,30,.08)" : "none";
+    }, { passive: true });
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) {
+        if (e.isIntersecting) { e.target.classList.add("in"); io.unobserve(e.target); }
+      });
+    }, { threshold: 0.12 });
+    document.querySelectorAll(".reveal").forEach(function (el) { io.observe(el); });
+  })();
+</script>
+</body>
+</html>

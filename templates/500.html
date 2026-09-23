@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Server error — {{ APP_NAME }}{% endblock %}
+{% block content %}
+<div class="card empty-state" style="padding:70px 30px">
+  <div class="e-ic" style="width:76px;height:76px;border-radius:20px">
+    <svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-3 3-3-3z"/></svg>
+  </div>
+  <b style="font-size:1.6rem">Something went wrong</b>
+  <p>An unexpected error occurred. Please try again in a moment.</p>
+  <a class="btn btn-primary" href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+</div>
+{% endblock %}

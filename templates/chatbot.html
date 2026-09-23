@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+{% block title %}AI Assistant — {{ APP_NAME }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Farm Equipment AI Assistant</h1>
+    <p>Ask questions about your equipment, maintenance and AI predictions.</p>
+  </div>
+</div>
+
+<div class="chat-shell">
+  <aside class="conv-side" id="convSide">
+    <div class="conv-side-head">
+      <button class="btn btn-primary btn-sm" id="newChat">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg> New chat
+      </button>
+      <input type="search" id="convSearch" class="conv-search" placeholder="Search chats…" aria-label="Search conversations">
+    </div>
+    <div class="conv-list" id="convList">
+      {% for c in conversations %}
+      <div class="conv-item{{ ' active' if c.conversation_id == active_conversation }}" data-id="{{ c.conversation_id }}">
+        <span class="conv-title">{{ c.title }}</span>
+        <button class="conv-del" title="Delete chat" aria-label="Delete chat" data-del="{{ c.conversation_id }}">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+        </button>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="conv-foot">
+      <select id="chatEquip" title="Talk about this machine">
+        <option value="">General question</option>
+        {% for e in equipment %}<option value="{{ e.equipment_id }}">{{ e.equipment_name }}</option>{% endfor %}
+      </select>
+    </div>
+  </aside>
+
+  <div class="chat-main">
+    <div class="chat-head">
+      <button class="conv-toggle" id="convToggle" aria-label="Toggle chats">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      </button>
+      <span class="bot-av">
+        <svg viewBox="0 0 24 24"><path d="M12 8a4 4 0 1 0 0-8 4 4 0 0 0 0 8z"/><path d="M4 21c0-4 4-7 8-7s8 3 8 7"/></svg>
+      </span>
+      <div>
+        <b>AI Assistant</b>
+        <small id="botStatus">Conversational assistant for your farm equipment</small>
+      </div>
+      <div style="margin-left:auto;display:flex;gap:8px;align-items:center">
+        <button class="btn btn-ghost btn-sm" id="clearChat">
+          <svg viewBox="0 0 24 24"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/></svg>
+          Clear chat
+        </button>
+      </div>
+    </div>
+    <div class="chat-quick" id="quickRow">
+      {% for q in quick_prompts %}
+      <button class="chip" data-quick="{{ q | e }}">{{ q }}</button>
+      {% endfor %}
+    </div>
+    <div class="chat-log" id="chatLog"></div>
+    <div class="chat-input-wrap">
+      <select id="chatLang" class="lang-select" title="Answer language" aria-label="Answer language">
+        <option value="en" selected>English</option>
+        <option value="hi">हिंदी (Hindi)</option>
+        <option value="kn">ಕನ್ನಡ (Kannada)</option>
+        <option value="te">తెలుగు (Telugu)</option>
+      </select>
+      <button class="mic-btn" id="micBtn" title="Voice input" aria-label="Voice input" aria-pressed="false">
+        <svg viewBox="0 0 24 24"><rect x="9" y="2" width="6" height="12" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 17v5"/></svg>
+      </button>
+      <textarea id="chatInput" rows="1" placeholder="Ask about overheating, oil, engine problems, service schedules… (Enter to send)"></textarea>
+      <button class="chat-send" id="sendBtn" aria-label="Send">
+        <svg viewBox="0 0 24 24"><path d="M22 2L11 13"/><path d="M22 2l-7 20-4-9-9-4z"/></svg>
+      </button>
+    </div>
+  </div>    <div class="chat-side">
+    <div class="disclaimer">
+      <b style="color:var(--text)">AI disclaimer</b><br>
+      AI-generated guidance is for assistance. Always follow the equipment
+      manufacturer's service instructions and consult a qualified technician for
+      serious problems.
+    </div>
+    <div class="card" style="padding:16px">
+      <div class="card-head" style="margin-bottom:10px"><h3>How the assistant works</h3></div>
+      <p style="font-size:.84rem;color:var(--muted);line-height:1.6">
+        Your question is matched against a maintenance knowledge base. Relevant
+        context (including this machine's latest prediction when one is selected)
+        is retrieved, and the answer is generated — by the knowledge base when no
+        LLM key is configured, or by an LLM with that context (RAG) when
+        <code>LLM_API_KEY</code> is set.
+      </p>
+      <p style="font-size:.84rem;color:var(--muted);line-height:1.6;margin-top:10px">
+        The assistant can also explain AI predictions: pick a machine and ask
+        <em>"Why is this machine showing high maintenance risk?"</em>
+      </p>
+    </div>
+    <div class="card" style="padding:16px">
+      <div class="card-head" style="margin-bottom:10px"><h3>Quick questions</h3></div>
+      <div style="display:flex;flex-direction:column;gap:7px">
+        <button class="chip" style="text-align:left" data-quick="Why is my tractor overheating?">🔥 Overheating</button>
+        <button class="chip" style="text-align:left" data-quick="Why is my oil pressure low?">🛢️ Oil problems</button>
+        <button class="chip" style="text-align:left" data-quick="What should I check if engine performance decreases?">⚙️ Engine problems</button>
+        <button class="chip" style="text-align:left" data-quick="When should I service my tractor?">📅 Maintenance schedule</button>
+        <button class="chip" style="text-align:left" data-quick="What does high maintenance risk mean?">⚠️ High risk explanation</button>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.CHAT_CONVERSATION_ID = {{ active_conversation or 'null' }};
+window.CHAT_MESSAGES = {{ messages | tojson }};
+window.CHAT_EQUIPMENT_ID = {{ request.args.get('equipment_id', none) or 'null' }};
+</script>
+<script src="{{ url_for('static', filename='js/chatbot.js') }}"></script>
+{% endblock %}

@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block title %}Page not found — {{ APP_NAME }}{% endblock %}
+{% block content %}
+<div class="card empty-state" style="padding:70px 30px">
+  <div class="e-ic" style="width:76px;height:76px;border-radius:20px">
+    <svg viewBox="0 0 24 24"><path d="M10.3 3.9L1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4"/><path d="M12 17h.01"/></svg>
+  </div>
+  <b style="font-size:1.6rem">404 — Page not found</b>
+  <p>The page you are looking for does not exist or has been moved.</p>
+  <a class="btn btn-primary" href="{{ url_for('dashboard') }}">Back to Dashboard</a>
+</div>
+{% endblock %}

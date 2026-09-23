@@ -1,0 +1,100 @@
+{% extends "base.html" %}
+{% block title %}Operational Data — {{ APP_NAME }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Operational Data</h1>
+    <p>Enter equipment readings manually or upload a CSV file. No sensors required.</p>
+  </div>
+</div>
+
+<div class="grid-2">
+  <!-- Manual entry -->
+  <div class="card">
+    <div class="card-head">
+      <div><h3>Manual Data Entry</h3><span class="sub">Type the latest reading</span></div>
+      <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:var(--muted);fill:none;stroke-width:1.8"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></svg>
+    </div>
+    <form id="manualForm" novalidate>
+      <div class="field" id="fm-eq">
+        <label>Select Equipment <span class="req">*</span></label>
+        <select id="manualEquip" required>
+          <option value="">Select equipment…</option>
+          {% for e in equipment %}<option value="{{ e.equipment_id }}">{{ e.equipment_name }} ({{ e.equipment_type }})</option>{% endfor %}
+        </select>
+        <span class="err-msg">Select an equipment.</span>
+      </div>
+      <div class="form-grid" style="margin-top:12px">
+        <div class="field"><label>Engine Speed (RPM)</label><input name="engine_speed" type="number" step="any" placeholder="2100"></div>
+        <div class="field"><label>Engine Torque (Nm)</label><input name="engine_torque" type="number" step="any" placeholder="420"></div>
+        <div class="field"><label>Engine Load (%)</label><input name="engine_load" type="number" step="any" placeholder="78"></div>
+        <div class="field"><label>Coolant Temperature (°C)</label><input name="coolant_temperature" type="number" step="any" placeholder="88"></div>
+        <div class="field"><label>Oil Temperature (°C)</label><input name="oil_temperature" type="number" step="any" placeholder="96"></div>
+        <div class="field"><label>Oil Pressure (bar)</label><input name="oil_pressure" type="number" step="any" placeholder="2.9"></div>
+        <div class="field"><label>Fuel Rate (L/h)</label><input name="fuel_rate" type="number" step="any" placeholder="11.4"></div>
+        <div class="field"><label>Vehicle Speed (km/h)</label><input name="vehicle_speed" type="number" step="any" placeholder="7.5"></div>
+        <div class="field"><label>Battery Voltage (V)</label><input name="battery_voltage" type="number" step="any" placeholder="13.8"></div>
+        <div class="field"><label>Transmission (gear)</label><input name="transmission" type="number" step="any" placeholder="8"></div>
+        <div class="field"><label>Operating Hours</label><input name="operating_hours" type="number" step="any" placeholder="1240"></div>
+        <div class="field"><label>Timestamp</label>
+          <input name="recorded_at" type="datetime-local" id="manualTime"></div>
+      </div>
+      <div class="form-actions">
+        <button class="btn btn-outline" type="button" id="fillDemo">Fill sample values</button>
+        <button class="btn btn-primary" type="submit" id="manualSubmit">Save Reading</button>
+      </div>
+    </form>
+  </div>
+
+  <!-- CSV upload -->
+  <div>
+    <div class="card">
+      <div class="card-head">
+        <div><h3>Upload CSV Data</h3><span class="sub">Bulk-load many readings at once</span></div>
+        <svg viewBox="0 0 24 24" style="width:22px;height:22px;stroke:var(--muted);fill:none;stroke-width:1.8"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+      </div>
+      <form id="csvForm">
+        <div class="field">
+          <label>Select Equipment <span class="req">*</span></label>
+          <select id="csvEquip" required>
+            <option value="">Select equipment…</option>
+            {% for e in equipment %}<option value="{{ e.equipment_id }}">{{ e.equipment_name }} ({{ e.equipment_type }})</option>{% endfor %}
+          </select>
+        </div>
+        <div class="field" style="margin-top:12px">
+          <label>CSV File <span class="req">*</span></label>
+          <input type="file" id="csvFile" accept=".csv,text/csv" required>
+          <p class="hint">Accepted headers: engine_speed, engine_torque, engine_load, coolant_temperature,
+            oil_temperature, oil_pressure, fuel_rate, vehicle_speed, battery_voltage, transmission,
+            operating_hours, timestamp (optional). A sample file is generated in <code>model/tractor_operational_dataset.csv</code> by the training script.</p>
+        </div>
+        <button class="btn btn-primary" type="submit" id="csvSubmit" style="margin-top:12px">
+          <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M17 8l-5-5-5 5"/><path d="M12 3v12"/></svg>
+          Upload CSV Data
+        </button>
+      </form>
+    </div>
+
+    <div class="card csv-summary" id="csvSummary" style="margin-top:18px">
+      <div class="card-head"><div><h3>Upload Summary</h3></div></div>
+      <div id="csvSummaryBody"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Recent records -->
+<div class="card" style="margin-top:18px">
+  <div class="card-head">
+    <div><h3>Recent Readings</h3><span class="sub">Latest operational data entries</span></div>
+    <select id="recentEquip" style="padding:7px 10px;border:1px solid var(--border-strong);border-radius:8px;background:var(--card);color:var(--text)">
+      <option value="">All equipment</option>
+      {% for e in equipment %}<option value="{{ e.equipment_id }}">{{ e.equipment_name }}</option>{% endfor %}
+    </select>
+  </div>
+  <div id="recentWrap"><div class="skeleton" style="height:120px"></div></div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{{ url_for('static', filename='js/operational.js') }}"></script>
+{% endblock %}

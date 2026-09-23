@@ -1,0 +1,195 @@
+{% extends "base.html" %}
+{% block title %}{{ equipment.equipment_name }} — {{ APP_NAME }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <a href="{{ url_for('equipment_page') }}" class="back-link" style="margin-bottom:8px">
+      <svg viewBox="0 0 24 24" style="width:15px;height:15px"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
+      All equipment
+    </a>
+    <div class="flex items-center gap-12 wrap">
+      <h1>{{ equipment.equipment_name }}</h1>
+      {{ equipment.status | status_pill | safe }}
+      {{ equipment.risk_level | risk_pill | safe }}
+    </div>
+    <p>{{ equipment.equipment_type }} · {{ equipment.brand }} {{ equipment.model }} ·
+       {{ equipment.registration_number or '—' }}</p>
+  </div>
+  <div class="actions">
+    <a class="btn btn-outline" href="{{ url_for('maintenance_page') }}?equipment_id={{ equipment.equipment_id }}">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+      Add Maintenance
+    </a>
+    <a class="btn btn-outline" href="{{ url_for('chatbot_page') }}?equipment_id={{ equipment.equipment_id }}">
+      <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+      Ask AI Assistant
+    </a>
+    <a class="btn btn-primary" href="{{ url_for('prediction_page') }}?equipment_id={{ equipment.equipment_id }}">
+      <svg viewBox="0 0 24 24"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.9 4.9l2.8 2.8"/><path d="M16.3 16.3l2.8 2.8"/><path d="M2 12h4"/><path d="M18 12h4"/><path d="M4.9 19.1l2.8-2.8"/><path d="M16.3 7.7l2.8-2.8"/></svg>
+      Run Prediction
+    </a>
+  </div>
+</div>
+
+<!-- Equipment info -->
+<div class="card">
+  <div class="card-head">
+    <div><h3>Equipment Information</h3></div>
+    <button class="btn btn-danger btn-sm" id="delEquip">Delete Equipment</button>
+  </div>
+  <div class="detail-grid">
+    <div class="detail-item"><div class="k">Equipment ID</div><div class="v">{{ equipment.registration_number or ('EQ-' ~ '%03d'|format(equipment.equipment_id)) }}</div></div>
+    <div class="detail-item"><div class="k">Type</div><div class="v">{{ equipment.equipment_type }}</div></div>
+    <div class="detail-item"><div class="k">Brand</div><div class="v">{{ equipment.brand or '—' }}</div></div>
+    <div class="detail-item"><div class="k">Model</div><div class="v">{{ equipment.model or '—' }}</div></div>
+    <div class="detail-item"><div class="k">Year</div><div class="v">{{ equipment.year or '—' }}</div></div>
+    <div class="detail-item"><div class="k">Operating Hours</div><div class="v">{{ equipment.operating_hours }} h</div></div>
+    <div class="detail-item"><div class="k">Purchase Date</div><div class="v">{{ equipment.purchase_date | fmt_date }}</div></div>
+    <div class="detail-item"><div class="k">Current Status</div><div class="v">{{ equipment.status }}</div></div>
+  </div>
+</div>
+
+<div class="grid-2" style="margin-top:18px">
+  <!-- Health section -->
+  <div class="card">
+    <div class="card-head">
+      <div><h3>Health &amp; Risk</h3><span class="sub">From the latest AI prediction</span></div>
+      {% if latest_prediction %}
+        {% if latest_prediction.is_demo %}<span class="demo-tag">Demo prediction</span>
+        {% else %}<span class="model-tag">ML model</span>{% endif %}
+      {% endif %}
+    </div>
+    {% if latest_prediction %}
+    <div class="pred-stats">
+      <div class="pred-stat"><div class="k">Condition</div>
+        <div class="v" style="color:{{ '#16a34a' if latest_prediction.condition == 'Normal' else '#dc2626' }}">{{ latest_prediction.condition }}</div></div>
+      <div class="pred-stat"><div class="k">Maintenance Risk</div><div class="v">{{ latest_prediction.risk_level }}</div></div>
+      <div class="pred-stat"><div class="k">Probability</div><div class="v">{{ latest_prediction.probability }}%</div></div>
+    </div>
+    <div class="detail-grid" style="grid-template-columns:repeat(3,1fr)">
+      <div class="detail-item"><div class="k">Last Prediction</div><div class="v">{{ latest_prediction.prediction_date | fmt_datetime }}</div></div>
+      <div class="detail-item"><div class="k">Last Service</div><div class="v">{{ equipment.last_service_date | fmt_date }}</div></div>
+      <div class="detail-item"><div class="k">Next Service</div><div class="v">{{ equipment.next_service_date | fmt_date }}</div></div>
+    </div>
+    {% if latest_prediction.recommendation %}
+    <div class="pred-rec" style="margin-top:14px"><b>Recommendation</b><p>{{ latest_prediction.recommendation }}</p></div>
+    {% endif %}
+    {% if latest_operational %}
+    <p class="pred-why" style="margin-top:12px"><b>Last data entry:</b> {{ latest_operational.recorded_at | fmt_datetime }} ·
+       coolant {{ latest_operational.coolant_temperature or '—' }}°C · oil {{ latest_operational.oil_temperature or '—' }}°C ·
+       oil pressure {{ latest_operational.oil_pressure or '—' }} bar</p>
+    {% endif %}
+    {% else %}
+    <div class="empty-state">
+      <div class="e-ic"><svg viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div>
+      <b>No prediction yet</b>
+      <p>Run an AI analysis on this machine to see its condition and maintenance risk.</p>
+      <a class="btn btn-primary btn-sm" href="{{ url_for('prediction_page') }}?equipment_id={{ equipment.equipment_id }}">Run Prediction</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Quick actions / operational snapshot -->
+  <div class="card">
+    <div class="card-head"><div><h3>Machine Quick Actions</h3><span class="sub">What would you like to do?</span></div></div>
+    <div style="display:flex;flex-direction:column;gap:10px">
+      <a class="btn btn-outline" style="justify-content:flex-start" href="{{ url_for('prediction_page') }}?equipment_id={{ equipment.equipment_id }}">
+        <svg viewBox="0 0 24 24"><path d="M12 2v4"/><path d="M12 18v4"/><path d="M4.9 4.9l2.8 2.8"/><path d="M16.3 16.3l2.8 2.8"/><path d="M2 12h4"/><path d="M18 12h4"/></svg>
+        Run Prediction — analyze current condition
+      </a>
+      <a class="btn btn-outline" style="justify-content:flex-start" href="{{ url_for('maintenance_page') }}?equipment_id={{ equipment.equipment_id }}">
+        <svg viewBox="0 0 24 24"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18l3 3 6.3-6.3a4 4 0 0 0 5.4-5.4l-3 3-3-3z"/></svg>
+        Add Maintenance — record a service
+      </a>
+      <a class="btn btn-outline" style="justify-content:flex-start" href="{{ url_for('operational_data_page') }}?equipment_id={{ equipment.equipment_id }}">
+        <svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
+        Enter Operational Data — manual or CSV
+      </a>
+      <a class="btn btn-outline" style="justify-content:flex-start" href="{{ url_for('chatbot_page') }}?equipment_id={{ equipment.equipment_id }}">
+        <svg viewBox="0 0 24 24"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        Ask AI Assistant about this machine
+      </a>
+    </div>
+    <div class="disclaimer" style="margin-top:16px">
+      The condition shown here is an early maintenance-risk indicator produced from
+      operational data — it is not a mechanical failure diagnosis. Always follow the
+      manufacturer's service instructions.
+    </div>
+  </div>
+</div>
+
+<!-- Maintenance history -->
+<div class="card" style="margin-top:18px">
+  <div class="card-head">
+    <div><h3>Maintenance History</h3><span class="sub">{{ maintenance | length }} record(s)</span></div>
+    <a href="{{ url_for('maintenance_page') }}?equipment_id={{ equipment.equipment_id }}" class="btn btn-ghost btn-sm">Manage →</a>
+  </div>
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr><th>Date</th><th>Service Type</th><th>Problem</th><th>Action Taken</th><th>Cost</th><th>Next Service</th></tr></thead>
+      <tbody>
+        {% for m in maintenance %}
+        <tr>
+          <td>{{ m.service_date | fmt_date }}</td>
+          <td><span class="pill pill-info">{{ m.service_type }}</span></td>
+          <td>{{ m.problem_description or '—' }}</td>
+          <td>{{ m.action_taken or '—' }}</td>
+          <td>{{ m.cost | money }}</td>
+          <td>{{ m.next_service_date | fmt_date }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6"><div class="empty-state" style="padding:24px"><b>No maintenance records yet</b>
+          <p>Record the first service for this machine.</p>
+          <a class="btn btn-primary btn-sm" href="{{ url_for('maintenance_page') }}?equipment_id={{ equipment.equipment_id }}">Add Maintenance</a>
+        </div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+
+<!-- Prediction history -->
+<div class="card" style="margin-top:18px">
+  <div class="card-head">
+    <div><h3>Prediction History</h3><span class="sub">Condition analyses run for this machine</span></div>
+    <a href="{{ url_for('prediction_page') }}?equipment_id={{ equipment.equipment_id }}" class="btn btn-ghost btn-sm">Analyze now →</a>
+  </div>
+  <div class="table-wrap">
+    <table class="data">
+      <thead><tr><th>Date</th><th>Condition</th><th>Risk Level</th><th>Probability</th><th>Source</th><th>Recommendation</th></tr></thead>
+      <tbody>
+        {% for p in predictions %}
+        <tr>
+          <td>{{ p.prediction_date | fmt_datetime }}</td>
+          <td>{{ p.condition | condition_pill | safe }}</td>
+          <td>{{ p.risk_level | risk_pill | safe }}</td>
+          <td>{{ p.probability }}%</td>
+          <td>{% if p.is_demo %}<span class="demo-tag">Demo</span>{% else %}<span class="model-tag">Model</span>{% endif %}</td>
+          <td style="max-width:340px">{{ p.recommendation }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="6"><div class="empty-state" style="padding:24px"><b>No predictions yet</b>
+          <p>Run an analysis to see this machine's condition here.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById("delEquip").addEventListener("click", function () {
+  confirmDialog({
+    title: "Delete {{ equipment.equipment_name }}?",
+    message: "This permanently removes the equipment and all of its records. This cannot be undone.",
+    onConfirm: function () {
+      API.deleteEquipment({{ equipment.equipment_id }}).then(function () {
+        toast("Equipment deleted.");
+        window.location.href = "/equipment";
+      }).catch(handleApiError);
+    },
+  });
+});
+</script>
+{% endblock %}

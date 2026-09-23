@@ -1,0 +1,92 @@
+[
+  {
+    "id": "overheating",
+    "keywords": ["overheat", "overheating", "hot", "temperature", "coolant", "radiator", "fan", "boiling", "steam"],
+    "question": "Why is my tractor overheating?",
+    "answer": "Overheating is usually caused by one of these: low coolant level, a blocked or damaged radiator, a faulty thermostat, a worn water pump, or a slipping radiator fan belt. Check the coolant level when the engine is cold, inspect the radiator fins for dirt, and make sure the fan belt is tight. If the temperature keeps rising under normal load, stop the machine and have a technician check the cooling system before continuing."
+  },
+  {
+    "id": "oil-change",
+    "keywords": ["oil change", "change the oil", "changing the oil", "change oil", "oil changing", "replace the oil", "replacing the oil", "oil and filter", "oil filter", "oil interval", "oil service", "oil grade"],
+    "question": "When should I change the engine oil and filter?",
+    "answer": "Engine oil and the oil filter should be changed at the interval in your operator's manual, usually based on operating hours (commonly every 250 to 500 hours for tractors). Working in dusty conditions or heavy loads can shorten that interval. Warm up the engine slightly before draining the oil, use the oil grade and filter specified in the manual, and record the service in the Maintenance page so the platform can remind you when the next change is due."
+  },
+  {
+    "id": "oil-pressure",
+    "keywords": ["oil", "pressure", "oil pressure", "oil pressure low", "low oil", "low oil pressure", "oil level", "oil pump", "lubrication", "dipstick"],
+    "question": "Why is my oil pressure low?",
+    "answer": "Low oil pressure can damage the engine quickly. First check the oil level with the dipstick and top up with the oil grade from the operator's manual. Also check for visible leaks, a clogged oil filter, or a worn oil pump. If pressure stays low after topping up, stop using the machine and consult a qualified technician."
+  },
+  {
+    "id": "engine-performance",
+    "keywords": ["engine", "performance", "power", "power loss", "rough", "idle", "smoke", "stall", "acceleration", "weak"],
+    "question": "What should I check if engine performance decreases?",
+    "answer": "When engine performance drops, check in this order: air filter (clean or replace), fuel filter and fuel quality, injectors, spark plugs (on petrol engines), and the exhaust for blockages. Low engine power can also come from a clogged fuel line or a failing fuel pump. If the engine runs rough or produces heavy smoke, stop work and have it inspected."
+  },
+  {
+    "id": "maintenance-schedule",
+    "keywords": ["schedule", "service", "when", "interval", "maintenance", "regular", "due", "hours", "routine"],
+    "question": "When should I service my tractor?",
+    "answer": "Follow the service intervals in your operator's manual, which are usually based on operating hours (for example every 100, 250 or 500 hours). As a general guide: check engine oil and coolant weekly; change engine oil and filters at the scheduled interval; service the air filter, brakes and hydraulics regularly; and check tire pressure before long work days. The platform also reminds you when a service is due."
+  },
+  {
+    "id": "high-risk",
+    "keywords": ["high risk", "risk", "anomalous", "abnormal", "prediction", "marked", "why did", "condition"],
+    "question": "What does high maintenance risk mean?",
+    "answer": "High maintenance risk means the system detected an abnormal operating pattern in the equipment data, compared with normal patterns the machine learning model learned. It is an early warning to inspect the machine, not a diagnosis of a specific failure. Please check engine temperature, oil pressure and the cooling system, and have a technician look at the machine before heavy use."
+  },
+  {
+    "id": "pre-use",
+    "keywords": ["before", "check", "pre-use", "start", "daily", "inspection", "checklist", "use"],
+    "question": "What should I check before using my tractor?",
+    "answer": "Before starting work: check engine oil and coolant levels, look for oil or fuel leaks, check tire pressure and wheel bolts, verify the lights and signals work, check hydraulic hoses for cracks, and make sure the PTO shield and guards are in place. A 10-minute daily check prevents most field breakdowns."
+  },
+  {
+    "id": "brakes",
+    "keywords": ["brake", "brakes", "stopping", "pedal"],
+    "question": "What should I do if the brakes feel weak?",
+    "answer": "Weak brakes are a safety issue. Check the brake fluid level, inspect the brake pads or discs for wear, and look for oil or fluid leaks at the wheels. If the pedal feels soft or travels too far, the system may need bleeding or repair — have a technician fix it before operating the machine."
+  },
+  {
+    "id": "hydraulics",
+    "keywords": ["hydraulic", "hydraulics", "lift", "leak", "fluid", "hose", "implement"],
+    "question": "Why is my hydraulic lift slow or weak?",
+    "answer": "Slow or weak hydraulics are usually caused by low hydraulic fluid, a clogged hydraulic filter, air in the system, or a worn pump/seals. Check the fluid level first, inspect hoses for leaks, and replace the filter at the scheduled interval. If the problem persists, the pump or control valves may need a technician's attention."
+  },
+  {
+    "id": "transmission",
+    "keywords": ["transmission", "gearbox", "gear", "shifting", "clutch", "hard to shift"],
+    "question": "Why is shifting gears difficult?",
+    "answer": "Hard shifting can come from low transmission oil, a worn clutch, incorrect oil grade, or linkage adjustments. Check the transmission oil level and condition first. If gears grind or the machine jumps out of gear, stop use and have the transmission inspected."
+  },
+  {
+    "id": "electrical",
+    "keywords": ["battery", "start", "starting", "wont start", "won't start", "electrical", "voltage", "crank", "lights"],
+    "question": "Why won't my tractor start?",
+    "answer": "Most starting problems are electrical. Check the battery voltage (it should be above 12.4 V when resting), clean the battery terminals, and check the starter and main fuses. Also confirm the safety switches (seat, PTO, clutch) are in the correct position — many tractors will not crank until they are. If it cranks but does not start, check fuel supply and the fuel filter."
+  },
+  {
+    "id": "fuel",
+    "keywords": ["fuel", "diesel", "filter", "tank", "consumption", "fuel rate"],
+    "question": "Why is my fuel consumption suddenly higher?",
+    "answer": "Higher fuel consumption usually means the engine is working harder than normal. Check for a clogged air filter, low tire pressure, a dragging brake, or worn injectors. It can also be caused by poor fuel quality. If consumption stays high after these checks, ask a technician to test the engine."
+  },
+  {
+    "id": "cooling-system",
+    "keywords": ["cooling", "coolant", "water pump", "thermostat", "radiator", "leak"],
+    "question": "How do I check the cooling system?",
+    "answer": "With the engine cold, check the coolant level in the expansion tank, inspect the radiator fins and hoses for leaks, and check the fan belt tension. Replace coolant at the interval in the manual. Never open the radiator cap while the engine is hot — pressurised coolant can cause serious burns."
+  },
+  {
+    "id": "vibration",
+    "keywords": ["vibrat", "noise", "sound", "knock", "rattle", "unusual"],
+    "question": "What should I do if I notice unusual noise or vibration?",
+    "answer": "Unusual noise or vibration usually points to loose or worn parts: check wheel bolts, PTO shafts, belts, bearings and the front axle. Metal knocking sounds from the engine area are serious — stop the machine and have a technician listen to it. Do not ignore new noises during field work."
+  },
+  {
+    "id": "general",
+    "keywords": ["help", "assistant", "chatbot", "how", "what", "maintenance", "advice", "guidance", "farm"],
+    "question": "General maintenance guidance",
+    "answer": "Tell me which machine you are working on and what you noticed (temperature, oil, noise, performance, or a service reminder), and I will give you practical guidance. You can also open the Predictive Maintenance page to run an analysis for a specific machine."
+  }
+]
