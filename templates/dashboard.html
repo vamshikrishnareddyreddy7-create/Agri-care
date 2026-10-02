@@ -97,6 +97,71 @@
   </div>
 </div>
 
+<!-- Upcoming Maintenance & Operations -->
+<div class="grid-2" style="margin-top:18px">
+  <div class="card">
+    <div class="card-head">
+      <div><h3>Upcoming Scheduled Services</h3><span class="sub">Next maintenance due dates</span></div>
+      <a href="/maintenance" class="btn btn-ghost btn-sm">Manage →</a>
+    </div>
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr><th>Equipment</th><th>Service</th><th>Due Date</th><th>Action</th></tr>
+        </thead>
+        <tbody>
+          {% for m in data.upcoming_maintenance %}
+          <tr>
+            <td><a class="eq-name" href="/equipment/{{ m.equipment_id }}">{{ m.equipment_name }}</a></td>
+            <td>{{ m.service_type }}</td>
+            <td><b>{{ m.next_service_date | fmt_date }}</b></td>
+            <td><span class="pill pill-warning">Upcoming</span></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4"><div class="empty-state" style="padding:16px"><p>No upcoming service due in the near term.</p></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-head">
+      <div><h3>Active Field Bookings &amp; Fuel</h3><span class="sub">Current machinery schedules</span></div>
+      <a href="/bookings" class="btn btn-ghost btn-sm">Bookings →</a>
+    </div>
+    <div class="flex gap-12" style="margin-bottom:14px">
+      <div class="stat-card" style="flex:1;background:var(--bg);box-shadow:none;border:1px solid var(--border)">
+        <span class="stat-ic green"><svg viewBox="0 0 24 24"><path d="M3 22v-8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8"/><path d="M7 12V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v8"/><path d="M15 8h4a2 2 0 0 1 2 2v6"/><circle cx="19" cy="18" r="2"/></svg></span>
+        <div><b>{{ data.stats.fuel_liters or 0 }} L</b><span>Fuel Used ({{ data.stats.fuel_cost | money }})</span></div>
+      </div>
+      <div class="stat-card" style="flex:1;background:var(--bg);box-shadow:none;border:1px solid var(--border)">
+        <span class="stat-ic blue"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/></svg></span>
+        <div><b>{{ data.stats.active_bookings or 0 }}</b><span>Active Reservations</span></div>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table class="data">
+        <thead>
+          <tr><th>Machine</th><th>Date</th><th>Window</th><th>Status</th></tr>
+        </thead>
+        <tbody>
+          {% for b in data.active_bookings %}
+          <tr>
+            <td><a class="eq-name" href="/equipment/{{ b.equipment_id }}">{{ b.equipment_name }}</a></td>
+            <td>{{ b.booking_date | fmt_date }}</td>
+            <td>{{ b.start_time }} – {{ b.end_time }}</td>
+            <td><span class="pill pill-healthy">{{ b.status }}</span></td>
+          </tr>
+          {% else %}
+          <tr><td colspan="4"><div class="empty-state" style="padding:16px"><p>No active reservations today.</p></div></td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
 <!-- Recent activity -->
 <div class="card" style="margin-top:18px">
   <div class="card-head">

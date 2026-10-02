@@ -1,0 +1,181 @@
+{% extends "base.html" %}
+{% block title %}Equipment Booking &amp; Rental — {{ APP_NAME }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Equipment Booking &amp; Scheduling</h1>
+    <p>Reserve machinery for field operations, prevent double-booking conflicts, and track farm rental schedules.</p>
+  </div>
+  <div class="actions">
+    <button class="btn btn-primary" id="newBookingBtn">
+      <svg viewBox="0 0 24 24"><path d="M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>
+      Book Equipment
+    </button>
+  </div>
+</div>
+
+<!-- Stat cards -->
+<div class="grid-4">
+  <div class="stat-card">
+    <span class="stat-ic blue">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+    </span>
+    <div><b>{{ stats.total }}</b><span>Total Bookings</span></div>
+  </div>
+  <div class="stat-card">
+    <span class="stat-ic green">
+      <svg viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+    </span>
+    <div><b>{{ stats.confirmed }}</b><span>Confirmed / Active</span></div>
+  </div>
+  <div class="stat-card">
+    <span class="stat-ic amber">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 14 14"/></svg>
+    </span>
+    <div><b>{{ stats.completed }}</b><span>Completed Usage</span></div>
+  </div>
+  <div class="stat-card">
+    <span class="stat-ic red">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+    </span>
+    <div><b>{{ stats.cancelled }}</b><span>Cancelled</span></div>
+  </div>
+</div>
+
+<!-- Bookings Table -->
+<div class="card" style="margin-top:20px">
+  <div class="card-head">
+    <div>
+      <h3>Scheduled Machine Reservations</h3>
+      <span class="sub">Conflict-checked reservation calendar</span>
+    </div>
+  </div>
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr>
+          <th>Booking ID</th>
+          <th>Equipment</th>
+          <th>Date</th>
+          <th>Time Window</th>
+          <th>Purpose / Operation</th>
+          <th>Status</th>
+          <th>Action</th>
+        </tr>
+      </thead>
+      <tbody id="bookingsTableBody">
+        {% for b in bookings %}
+        <tr>
+          <td><b>#BK-{{ b.booking_id }}</b></td>
+          <td>
+            <a class="eq-name" href="/equipment/{{ b.equipment_id }}">{{ b.equipment_name }}</a>
+          </td>
+          <td><b>{{ b.booking_date | fmt_date }}</b></td>
+          <td><span class="pill pill-muted">{{ b.start_time }} – {{ b.end_time }}</span></td>
+          <td>{{ b.purpose or 'Field Work' }}</td>
+          <td>
+            {% if b.status == 'Confirmed' %}
+            <span class="pill pill-healthy">✓ Confirmed</span>
+            {% elif b.status == 'Completed' %}
+            <span class="pill pill-muted">Completed</span>
+            {% else %}
+            <span class="pill pill-risk">Cancelled</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if b.status == 'Confirmed' %}
+            <button class="btn btn-outline btn-sm cancel-booking-btn" data-id="{{ b.booking_id }}">Cancel</button>
+            {% else %}
+            <span class="text-sm text-muted">—</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7"><div class="empty-state"><p>No equipment bookings scheduled yet.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.BOOKING_EQUIPMENT = {{ equipment | tojson }};
+window.BOOKINGS_DATA = {{ bookings | tojson }};
+
+(function() {
+  var newBtn = document.getElementById("newBookingBtn");
+
+  document.querySelectorAll(".cancel-booking-btn").forEach(function(btn) {
+    btn.addEventListener("click", function() {
+      var id = this.getAttribute("data-id");
+      if (confirm("Are you sure you want to cancel booking #" + id + "?")) {
+        API.cancelBooking(id).then(function() {
+          toast("Booking cancelled successfully.");
+          window.location.reload();
+        }).catch(handleApiError);
+      }
+    });
+  });
+
+  newBtn.addEventListener("click", function() {
+    var todayStr = new Date().toISOString().slice(0, 10);
+    var equipOptions = window.BOOKING_EQUIPMENT.map(function(e) {
+      return '<option value="' + e.equipment_id + '">' + escapeHtml(e.equipment_name) + ' (' + escapeHtml(e.equipment_type) + ')</option>';
+    }).join('');
+
+    var formHtml = '' +
+      '<form id="addBookingForm">' +
+        '<div class="form-grid">' +
+          '<div class="field full">' +
+            '<label>Select Equipment <span class="req">*</span></label>' +
+            '<select name="equipment_id" required>' + equipOptions + '</select>' +
+          '</div>' +
+          '<div class="field full">' +
+            '<label>Booking Date <span class="req">*</span></label>' +
+            '<input type="date" name="booking_date" value="' + todayStr + '" required>' +
+          '</div>' +
+          '<div class="field">' +
+            '<label>Start Time <span class="req">*</span></label>' +
+            '<input type="time" name="start_time" value="08:00" required>' +
+          '</div>' +
+          '<div class="field">' +
+            '<label>End Time <span class="req">*</span></label>' +
+            '<input type="time" name="end_time" value="17:00" required>' +
+          '</div>' +
+          '<div class="field full">' +
+            '<label>Purpose / Field Location <span class="req">*</span></label>' +
+            '<input type="text" name="purpose" placeholder="e.g. Corn harvesting in North Parcel" required>' +
+          '</div>' +
+        '</div>' +
+        '<div style="margin-top:10px;font-size:.82rem;color:var(--muted)">' +
+          'ℹ The system automatically verifies machine availability and blocks double-booking conflicts.' +
+        '</div>' +
+      '</form>';
+
+    openModal({
+      title: "Book Equipment",
+      body: formHtml,
+      submitText: "Confirm Reservation",
+      onSubmit: function() {
+        var f = document.getElementById("addBookingForm");
+        var formData = new FormData(f);
+        var payload = {};
+        formData.forEach(function(val, key) { payload[key] = val; });
+
+        if (!payload.booking_date || !payload.purpose) {
+          toast("Please fill in booking date and purpose.", "error");
+          return false;
+        }
+
+        API.createBooking(payload).then(function(newBooking) {
+          toast("Equipment booked successfully!");
+          window.location.reload();
+        }).catch(handleApiError);
+      }
+    });
+  });
+})();
+</script>
+{% endblock %}

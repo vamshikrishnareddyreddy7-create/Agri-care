@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+{% block title %}Fuel Tracking — {{ APP_NAME }}{% endblock %}
+{% block content %}
+<div class="page-head">
+  <div>
+    <h1>Fuel Tracking &amp; Efficiency</h1>
+    <p>Monitor diesel &amp; fuel consumption, track fuel expenses, and calculate machine efficiency.</p>
+  </div>
+  <div class="actions">
+    <button class="btn btn-primary" id="addFuelBtn">
+      <svg viewBox="0 0 24 24"><path d="M12 5v14"/><path d="M5 12h14"/></svg>
+      Log Fuel Fill-Up
+    </button>
+  </div>
+</div>
+
+<!-- Stat cards -->
+<div class="grid-4">
+  <div class="stat-card">
+    <span class="stat-ic green">
+      <svg viewBox="0 0 24 24"><path d="M3 22v-8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8"/><path d="M7 12V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v8"/><path d="M15 8h4a2 2 0 0 1 2 2v6"/><circle cx="19" cy="18" r="2"/></svg>
+    </span>
+    <div><b id="stFuelLiters">{{ summary.total_liters }} L</b><span>Total Fuel Logged</span></div>
+  </div>
+  <div class="stat-card">
+    <span class="stat-ic blue">
+      <svg viewBox="0 0 24 24"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    </span>
+    <div><b id="stFuelCost">{{ summary.total_cost | money }}</b><span>Total Fuel Expense</span></div>
+  </div>
+  <div class="stat-card">
+    <span class="stat-ic amber">
+      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>
+    </span>
+    <div><b id="stFuelAvg">{{ summary.avg_cost_per_liter }} ₺/L</b><span>Avg. Cost / Liter</span></div>
+  </div>
+  <div class="stat-card">
+    <span class="stat-ic red">
+      <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/></svg>
+    </span>
+    <div><b id="stFuelRecords">{{ summary.record_count }}</b><span>Fuel Fill-Up Records</span></div>
+  </div>
+</div>
+
+<!-- Toolbar -->
+<div class="card" style="padding:14px 18px;margin:20px 0 16px">
+  <div class="form-grid" style="grid-template-columns:2fr 1fr 1fr">
+    <div class="field">
+      <label for="fuelSearch">Search Notes or Machine</label>
+      <input type="text" id="fuelSearch" placeholder="Search fill-ups…">
+    </div>
+    <div class="field">
+      <label for="fuelEquip">Filter Machine</label>
+      <select id="fuelEquip">
+        <option value="">All Equipment</option>
+        {% for e in equipment %}
+        <option value="{{ e.equipment_id }}">{{ e.equipment_name }} ({{ e.equipment_type }})</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="field">
+      <label for="fuelDate">Date From</label>
+      <input type="date" id="fuelDate">
+    </div>
+  </div>
+</div>
+
+<!-- Fuel Log Table -->
+<div class="card">
+  <div class="card-head">
+    <div><h3>Fuel Consumption Log</h3><span class="sub">Detailed records of diesel &amp; petrol refuels</span></div>
+  </div>
+  <div class="table-wrap">
+    <table class="data">
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Equipment</th>
+          <th>Quantity (L)</th>
+          <th>Total Cost (₺)</th>
+          <th>Cost/L</th>
+          <th>Operating Hours</th>
+          <th>Notes</th>
+        </tr>
+      </thead>
+      <tbody id="fuelTableBody">
+        {% for f in records %}
+        <tr>
+          <td><b>{{ f.date | fmt_date }}</b></td>
+          <td>{{ f.equipment_name }}</td>
+          <td><span class="pill pill-healthy">{{ f.fuel_quantity }} L</span></td>
+          <td>{{ f.fuel_cost | money }}</td>
+          <td>{{ (f.fuel_cost / f.fuel_quantity) | round(2) if f.fuel_quantity else '—' }} ₺/L</td>
+          <td>{{ f.operating_hours ~ ' h' if f.operating_hours else '—' }}</td>
+          <td>{{ f.notes or '—' }}</td>
+        </tr>
+        {% else %}
+        <tr><td colspan="7"><div class="empty-state"><p>No fuel records logged yet.</p></div></td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+window.FUEL_EQUIPMENT = {{ equipment | tojson }};
+window.FUEL_RECORDS = {{ records | tojson }};
+
+(function() {
+  var addBtn = document.getElementById("addFuelBtn");
+  var tbody = document.getElementById("fuelTableBody");
+  var searchInput = document.getElementById("fuelSearch");
+  var equipSelect = document.getElementById("fuelEquip");
+  var dateInput = document.getElementById("fuelDate");
+
+  function renderRows(list) {
+    if (!list || !list.length) {
+      tbody.innerHTML = '<tr><td colspan="7"><div class="empty-state"><p>No matching fuel records found.</p></div></td></tr>';
+      return;
+    }
+    tbody.innerHTML = list.map(function(f) {
+      var costPerL = f.fuel_quantity ? (f.fuel_cost / f.fuel_quantity).toFixed(2) + " ₺/L" : "—";
+      return '<tr>' +
+        '<td><b>' + fmtDate(f.date) + '</b></td>' +
+        '<td>' + escapeHtml(f.equipment_name || "Machine") + '</td>' +
+        '<td><span class="pill pill-healthy">' + f.fuel_quantity + ' L</span></td>' +
+        '<td>' + Number(f.fuel_cost || 0).toLocaleString() + ' ₺</td>' +
+        '<td>' + costPerL + '</td>' +
+        '<td>' + (f.operating_hours ? f.operating_hours + ' h' : '—') + '</td>' +
+        '<td>' + escapeHtml(f.notes || "—") + '</td>' +
+      '</tr>';
+    }).join('');
+  }
+
+  function filterRecords() {
+    var q = searchInput.value.toLowerCase();
+    var eq = equipSelect.value;
+    var d = dateInput.value;
+
+    var filtered = window.FUEL_RECORDS.filter(function(r) {
+      var matchEq = !eq || String(r.equipment_id) === String(eq);
+      var matchDate = !d || (r.date && r.date >= d);
+      var matchQ = !q || (r.equipment_name && r.equipment_name.toLowerCase().includes(q)) || (r.notes && r.notes.toLowerCase().includes(q));
+      return matchEq && matchDate && matchQ;
+    });
+    renderRows(filtered);
+  }
+
+  searchInput.addEventListener("input", filterRecords);
+  equipSelect.addEventListener("change", filterRecords);
+  dateInput.addEventListener("change", filterRecords);
+
+  addBtn.addEventListener("click", function() {
+    var todayStr = new Date().toISOString().slice(0, 10);
+    var equipOptions = window.FUEL_EQUIPMENT.map(function(e) {
+      return '<option value="' + e.equipment_id + '">' + escapeHtml(e.equipment_name) + ' (' + escapeHtml(e.equipment_type) + ')</option>';
+    }).join('');
+
+    var formHtml = '' +
+      '<form id="addFuelForm">' +
+        '<div class="form-grid">' +
+          '<div class="field full">' +
+            '<label>Select Equipment <span class="req">*</span></label>' +
+            '<select name="equipment_id" required>' + equipOptions + '</select>' +
+          '</div>' +
+          '<div class="field">' +
+            '<label>Date <span class="req">*</span></label>' +
+            '<input type="date" name="date" value="' + todayStr + '" required>' +
+          '</div>' +
+          '<div class="field">' +
+            '<label>Fuel Quantity (Liters) <span class="req">*</span></label>' +
+            '<input type="number" step="any" name="fuel_quantity" placeholder="e.g. 50" required>' +
+          '</div>' +
+          '<div class="field">' +
+            '<label>Total Fuel Cost (₺) <span class="req">*</span></label>' +
+            '<input type="number" step="any" name="fuel_cost" placeholder="e.g. 2000" required>' +
+          '</div>' +
+          '<div class="field">' +
+            '<label>Operating Hours</label>' +
+            '<input type="number" step="any" name="operating_hours" placeholder="e.g. 1250">' +
+          '</div>' +
+          '<div class="field full">' +
+            '<label>Notes / Work Carried Out</label>' +
+            '<textarea name="notes" rows="2" placeholder="e.g. Full tank before wheat sowing in Field B"></textarea>' +
+          '</div>' +
+        '</div>' +
+      '</form>';
+
+    openModal({
+      title: "Log Fuel Fill-Up",
+      body: formHtml,
+      submitText: "Save Fuel Record",
+      onSubmit: function() {
+        var f = document.getElementById("addFuelForm");
+        var formData = new FormData(f);
+        var payload = {};
+        formData.forEach(function(val, key) { payload[key] = val; });
+
+        if (!payload.fuel_quantity || !payload.fuel_cost) {
+          toast("Please enter quantity and total cost.", "error");
+          return false;
+        }
+
+        API.addFuelRecord(payload).then(function(newRecord) {
+          toast("Fuel record added successfully!");
+          window.location.reload();
+        }).catch(handleApiError);
+      }
+    });
+  });
+})();
+</script>
+{% endblock %}

@@ -94,6 +94,21 @@ const API = (() => {
       return request("GET", `/api/reports?${qs}`);
     },
 
+    // Fuel Tracking
+    getFuelRecords: (equipmentId) =>
+      request("GET", `/api/fuel${equipmentId ? `?equipment_id=${equipmentId}` : ""}`),
+    addFuelRecord: (data) => request("POST", "/api/fuel", data),
+
+    // Equipment Bookings / Rentals
+    getBookings: (equipmentId) =>
+      request("GET", `/api/bookings${equipmentId ? `?equipment_id=${equipmentId}` : ""}`),
+    createBooking: (data) => request("POST", "/api/bookings", data),
+    cancelBooking: (id) => request("POST", `/api/bookings/${id}/cancel`),
+
+    // Service History
+    getServiceHistory: (equipmentId) =>
+      request("GET", `/api/service-history${equipmentId ? `?equipment_id=${equipmentId}` : ""}`),
+
     // Notifications
     getNotifications: () => request("GET", "/api/notifications"),
     markNotificationsRead: () => request("POST", "/api/notifications/read"),

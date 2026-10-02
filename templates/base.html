@@ -37,6 +37,14 @@
         <svg viewBox="0 0 24 24"><path d="M3 12h4l3-8 4 16 3-8h4"/></svg>
         Operational Data
       </a>
+      <a class="nav-item {{ 'active' if active == 'fuel' }}" href="/fuel">
+        <svg viewBox="0 0 24 24"><path d="M3 22v-8a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v8"/><path d="M7 12V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v8"/><path d="M15 8h4a2 2 0 0 1 2 2v6"/><circle cx="19" cy="18" r="2"/></svg>
+        Fuel Tracking
+      </a>
+      <a class="nav-item {{ 'active' if active == 'bookings' }}" href="/bookings">
+        <svg viewBox="0 0 24 24"><path d="M19 4H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/></svg>
+        Equipment Booking
+      </a>
       <div class="nav-group">Intelligence</div>
       <a class="nav-item {{ 'active' if active == 'prediction' }}" href="{{ url_for('prediction_page') }}">
         <svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="2"/><path d="M9 2v4"/><path d="M15 2v4"/><path d="M9 18v4"/><path d="M15 18v4"/><path d="M2 9h4"/><path d="M18 9h4"/><path d="M2 15h4"/><path d="M18 15h4"/></svg>

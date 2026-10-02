@@ -1,0 +1,8 @@
+{
+  "name": "AgriCare - Farm Equipment Management & Predictive Maintenance",
+  "description": "AI-based farm equipment management, telematics monitoring, and predictive maintenance platform.",
+  "permissions": [],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
